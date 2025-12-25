@@ -1,0 +1,147 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+
+  student Student?
+  teacher Teacher?
+  parent  Parent?
+}
+
+model Student {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  rollNo    String
+  name      String
+  photo     String?
+  class     String
+  section   String
+  dob       DateTime
+  address   String
+
+  user        User         @relation(fields: [userId], references: [id])
+  parents     Parent[]
+  attendance  Attendance[]
+  timetables  Timetable[]
+  ptms        Ptm[]
+}
+
+
+model Parent {
+  id        String  @id @default(uuid())
+  userId    String  @unique
+  studentId String
+  name      String
+  photo     String?
+  contact   String
+  relation  String   // Father / Mother / Guardian
+
+  user    User    @relation(fields: [userId], references: [id])
+  student Student @relation(fields: [studentId], references: [id])
+}
+
+
+model Teacher {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  name      String
+  subject   String
+
+  user        User        @relation(fields: [userId], references: [id])
+  timetables  Timetable[]
+  ptms        Ptm[]
+}
+
+model Subject {
+  id     String @id @default(uuid())
+  name   String
+  class  String
+
+  attendance Attendance[]
+  timetable  Timetable[]
+}
+
+model Timetable {
+  id        String   @id @default(uuid())
+  class     String
+  section   String
+  day       String   // Monday, Tuesday...
+  startTime String
+  endTime   String
+
+  subjectId String
+  teacherId String
+  studentId String?
+
+  subject Subject @relation(fields: [subjectId], references: [id])
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+  student Student? @relation(fields: [studentId], references: [id])
+}
+
+
+model Attendance {
+  id        String            @id @default(uuid())
+  studentId String
+  subjectId String
+  date      DateTime
+  status    AttendanceStatus
+
+  student Student @relation(fields: [studentId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@unique([studentId, subjectId, date])
+}
+
+model Ptm {
+  id        String   @id @default(uuid())
+  studentId String
+  teacherId String
+  date      DateTime
+  time      String
+  status    String   // Scheduled / Completed / Cancelled
+
+  student Student @relation(fields: [studentId], references: [id])
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+}
+
+model ParentInvite {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  token     String   @unique
+  studentId String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+}
