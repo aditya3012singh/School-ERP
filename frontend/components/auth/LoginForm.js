@@ -21,7 +21,7 @@ export default function LoginForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full max-w-sm space-y-4 bg-white p-6 rounded-lg shadow"
+      className="w-full max-w-3xl min-h-96 space-y-6 bg-white p-10 rounded-lg shadow"
     >
       <h1 className="text-2xl font-semibold text-center">Login</h1>
 

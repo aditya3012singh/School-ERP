@@ -1,7 +1,7 @@
 import LoginForm from "@/components/auth/LoginForm";
 
 export default function () {
-  return <div>
+  return <div className="">
     <LoginForm/>
   </div>;
 }

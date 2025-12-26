@@ -1,13 +1,13 @@
-import { useAppSelector } from "./useAppSelector";
+// import { useAppSelector } from "./useAppSelector";
 
-export const useAuth = () => {
-  const { user, token, loading } = useAppSelector((state) => state.auth);
+// export const useAuth = () => {
+//   const { user, token, loading } = useAppSelector((state) => state.auth);
 
-  return {
-    user,
-    token,
-    isAuthenticated: Boolean(token),
-    role: user?.role || null,
-    loading,
-  };
-};
+//   return {
+//     user,
+//     token,
+//     isAuthenticated: Boolean(token),
+//     role: user?.role || null,
+//     loading,
+//   };
+// };

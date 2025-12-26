@@ -1,3 +1,4 @@
-import { useAppSelector } from "@/hooks/useAppSelector";
+import { useSelector } from "react-redux";
 
-const user = useAppSelector((state) => state.auth.user);
+
+export const user = useSelector((state) => state.auth.user);

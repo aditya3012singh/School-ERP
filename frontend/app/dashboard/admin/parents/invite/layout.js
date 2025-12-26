@@ -1,6 +1,5 @@
 
-
-export default function dashboardLayout({ children }) {
+export default function authLayout({ children }) {
   return (
     <div
       style={{}}
