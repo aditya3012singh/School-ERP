@@ -1,5 +1,4 @@
-
-export default function authLayout({ children }) {
+export default function LoginLayout({ children }) {
   return (
     <div
       style={{
