@@ -28,10 +28,10 @@ const adminMenu = [
     ],
   },
   {
-    label: "Academics",
+    label: "Timetable",
     children: [
-      { label: "Subjects", path: "/admin/subjects" },
-      { label: "Timetable", path: "/admin/timetable" },
+      { label: "Subjects", path: "/dashboard/admin/subjects" },
+      { label: "Timetable", path: "/dashboard/admin/timetable" },
     ],
   },
   {
