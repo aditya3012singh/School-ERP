@@ -58,7 +58,7 @@ const SchoolDashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto p-6">
+      <div className=" mx-auto p-6">
         {/* Top Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           {/* Total Students */}

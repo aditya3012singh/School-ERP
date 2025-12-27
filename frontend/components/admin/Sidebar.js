@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const adminMenu = [
   { label: "Dashboard", path: "/dashboard/admin" },
@@ -33,10 +34,6 @@ const adminMenu = [
       { label: "Create timetable", path: "/dashboard/admin/timetable/create" },
       { label: "All Timetables", path: "/dashboard/admin/timetable" },
     ],
-  },
-  {
-    label: "Attendance",
-    path: "/dashboard/admin/attendance",
   },
   {
     label: "PTM",
@@ -73,7 +70,7 @@ export default function Sidebar() {
 
   return (
     <aside className="w-60 h-screen border-r border-gray-200">
-      <div className="pb-8"><h1 className="text-xl font-bold p-4">School Dashboard</h1></div>
+      <div onClick={() => router.push("/dashboard/admin")} className="pb-8 cursor-pointer"><h1 className="text-xl font-bold p-4">School Dashboard</h1></div>
       {adminMenu.map((item) => (
         <div key={item.label} className="">
 
@@ -85,17 +82,19 @@ export default function Sidebar() {
             <span className="font-semibold">{item.label}</span>
 
             {/* Show toggle icon only if children exist */}
-            {item.children && (
+            {/* {item.children && (
               <span className="text-lg">
                 {activeMenu === item.label ? "−" : "+"}
               </span>
-            )}
+            )} */}
           </div>
 
           {/* Child Menu */}
           {activeMenu === item.label && item.children && (
-            <ul className="pl-6 pb-3 space-y-2 text-sm text-gray-600">
+            
+            <ol  className="pl-6 pb-3 space-y-2 text-sm text-gray-600">
               {item.children.map((child) => (
+                
                 <li
                   key={child.label}
                   onClick={() => router.push(child.path)}
@@ -104,7 +103,7 @@ export default function Sidebar() {
                   {child.label}
                 </li>
               ))}
-            </ul>
+            </ol>
           )}
         </div>
       ))}
