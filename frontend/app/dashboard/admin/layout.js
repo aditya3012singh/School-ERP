@@ -5,9 +5,13 @@ export default function adminLayout({ children }) {
     <div
       style={{}}
       className="flex "
-    >
-      <Sidebar/>
-      {children}
+    > <div>
+        <Sidebar/>
+    </div>
+      <div className="w-full">
+        {children}
+      </div>
+      
     </div>
   );
 }

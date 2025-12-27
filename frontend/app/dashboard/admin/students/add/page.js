@@ -116,7 +116,7 @@ const CreateStudentForm = () => {
   };
 
   return (
-    <div className="w-[210%] bg-gray-50 p-6">
+    <div className=" bg-gray-50 p-6">
       <div className=" mx-auto">
         {/* Header */}
         <div className="mb-6">
