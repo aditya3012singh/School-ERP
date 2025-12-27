@@ -30,8 +30,8 @@ const adminMenu = [
   {
     label: "Timetable",
     children: [
-      { label: "Subjects", path: "/dashboard/admin/subjects" },
-      { label: "Timetable", path: "/dashboard/admin/timetable" },
+      { label: "Create timetable", path: "/dashboard/admin/timetable/create" },
+      { label: "All Timetables", path: "/dashboard/admin/timetable" },
     ],
   },
   {
