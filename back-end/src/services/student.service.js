@@ -111,3 +111,19 @@ export const getStudentTimetableService = async (userId) => {
     ],
   });
 };
+
+export const getAllStudentsService = async () => {
+  return prisma.student.findMany({
+    select: {
+      id: true,
+      name: true,
+      rollNo: true,
+      class: true,
+      section: true,
+      attendance: true,
+      parents: { select: { name: true } },
+    },
+    orderBy: { name: "asc" },
+  });
+};
+
