@@ -4,6 +4,7 @@ import {
   getTeacherClasses,
   getTeacherClassAttendanceSummary,
   getTeacherTodayClasses,
+  getAllTeacher,
 } from "../controllers/teacher.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { roleMiddleware } from "../middlewares/role.middleware.js";
@@ -62,5 +63,12 @@ router.get(
   roleMiddleware(ROLES.TEACHER),
   getTeacherTodayClasses
 );
+
+router,get(
+  "/allteachers",
+  authMiddleware,
+  roleMiddleware(ROLES.ADMIN),
+  getAllTeacher
+)
 
 export default router;

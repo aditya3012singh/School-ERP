@@ -3,6 +3,7 @@ import {
   getTeacherClassesService,
   getTeacherClassAttendanceSummaryService,
   getTeacherTodayClassesService,
+  getAllTeacherService,
 } from "../services/teacher.service.js";
 import { successResponse, errorResponse } from "../utils/response.js";
 import { HTTP_STATUS } from "../utils/constants.js";
@@ -106,3 +107,21 @@ export const getTeacherTodayClasses = async (req, res) => {
     );
   }
 };
+
+export const getAllTeacher = async (req, res) => {
+  try{
+    const data = await getAllTeacherService();
+    return successResponse(
+      res,
+      "All teachers fetched successfully",
+      data,
+      HTTP_STATUS.OK
+    );
+  } catch (error) {
+    return errorResponse(
+      res,
+      error.message,
+      error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR
+    );
+  }
+}

@@ -3,6 +3,7 @@ import {
   getStudentParentsService,
   getStudentPTMsService,
   getStudentTimetableService,
+  getAllStudentsService,
 } from "../services/student.service.js";
 import { successResponse, errorResponse } from "../utils/response.js";
 import { HTTP_STATUS } from "../utils/constants.js";
@@ -98,3 +99,21 @@ export const getStudentTimetable = async (req, res) => {
     );
   }
 };
+
+export const getAllStudent = async (req, res) => {
+  try{
+    const data= await getAllStudentsService();
+    return successResponse(
+      res,
+      "All students fetched successfully",
+      data,
+      HTTP_STATUS.OK
+    );
+  } catch (error) {
+    return errorResponse(
+      res,
+      error.message,
+      error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR
+    );
+  }
+}

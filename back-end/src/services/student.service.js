@@ -122,6 +122,8 @@ export const getAllStudentsService = async () => {
       section: true,
       attendance: true,
       parents: { select: { name: true } },
+      dob: true,
+      user:true,
     },
     orderBy: { name: "asc" },
   });

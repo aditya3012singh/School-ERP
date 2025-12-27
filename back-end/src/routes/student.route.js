@@ -4,6 +4,7 @@ import {
   getStudentParents,
   getStudentPTMs,
   getStudentTimetable,
+  getAllStudent,
 } from "../controllers/student.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { roleMiddleware } from "../middlewares/role.middleware.js";
@@ -78,6 +79,13 @@ router.get(
   authMiddleware,
   roleMiddleware(ROLES.STUDENT),
   getStudentTimetable
+);
+
+router.get(
+  '/allstudents',
+  authMiddleware,
+  roleMiddleware(ROLES.ADMIN),
+  getAllStudent
 );
 
 export default router;

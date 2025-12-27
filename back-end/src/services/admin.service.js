@@ -1,6 +1,6 @@
 import prisma from "../config/prisma.js";
 import { ROLES } from "../utils/constants.js";
-import { hashedPassword } from "../utils/hash.js";
+import { hashedPassword, hashedPassword } from "../utils/hash.js";
 import crypto from "crypto";
 import { sendEmail } from "../utils/mailer.js";
 /**

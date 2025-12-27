@@ -140,3 +140,18 @@ export const getTeacherTodayClassesService = async (userId) => {
     orderBy: { startTime: "asc" },
   });
 };
+
+export const getAllTeacherService = async ()=>{
+  return prisma.teacher.findMany({
+    select:{
+      id:true,
+      name:true,
+      subject:true,
+      user:{
+        select:{
+          email:true,
+        }
+      }
+    }
+  })
+}
