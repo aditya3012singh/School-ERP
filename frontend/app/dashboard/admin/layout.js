@@ -4,7 +4,7 @@ export default function adminLayout({ children }) {
   return (
     <div
       style={{}}
-      className="flex"
+      className="flex "
     >
       <Sidebar/>
       {children}

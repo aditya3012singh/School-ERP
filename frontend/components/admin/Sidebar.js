@@ -36,13 +36,13 @@ const adminMenu = [
   },
   {
     label: "Attendance",
-    path: "/admin/attendance",
+    path: "/dashboard/admin/attendance",
   },
   {
     label: "PTM",
     children: [
-      { label: "Schedule PTM", path: "/admin/ptm/create" },
-      { label: "PTM List", path: "/admin/ptm" },
+      { label: "Schedule PTM", path: "/dashboard/admin/ptm/create" },
+      { label: "PTM List", path: "/dashboard/admin/ptm" },
     ],
   },
   {
@@ -72,9 +72,10 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 h-screen border-r bg-white">
+    <aside className="w-60 h-screen border-r border-gray-200">
+      <div className="pb-8"><h1 className="text-xl font-bold p-4">School Dashboard</h1></div>
       {adminMenu.map((item) => (
-        <div key={item.label} className="border-b">
+        <div key={item.label} className="">
 
           {/* Parent Menu */}
           <div

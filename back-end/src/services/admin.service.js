@@ -186,7 +186,7 @@ export const createAdminService = async ({ name, email, password }) => {
   }
 
   // Hash password
-  const hashedPassword = await hashPassword(password);
+  const hashedPassword = await hashedPassword(password);
 
   // Create admin user
   const admin = await prisma.user.create({
