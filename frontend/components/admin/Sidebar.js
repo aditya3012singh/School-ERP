@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useDispatch } from "react-redux";
+import { logout } from "@/store/api/auth.thunk";
 
 const adminMenu = [
   { label: "Dashboard", path: "/dashboard/admin" },
@@ -46,7 +48,7 @@ const adminMenu = [
     label: "Settings",
     children: [
       { label: "Profile", path: "/admin/profile" },
-      { label: "Logout", path: "/logout" },
+      { label: "Logout" },
     ],
   },
 ];
@@ -56,17 +58,25 @@ const adminMenu = [
 export default function Sidebar() {
   const [activeMenu, setActiveMenu] = useState(null);
   const router = useRouter();
+  const dispatch = useDispatch();
 
-  const handleClick = (item) => {
-    // If item has children → toggle
+  const handleClick = async (item) => {
+    if (item.label === "Logout") {
+      await dispatch(logout());
+      router.replace("/auth/login");
+      return;
+    }
+
     if (item.children) {
       setActiveMenu(activeMenu === item.label ? null : item.label);
-    } 
-    // If item has path → navigate
-    else if (item.path) {
+      return;
+    }
+
+    if (item.path) {
       router.push(item.path);
     }
   };
+
 
   return (
     <aside className="w-60 h-screen border-r border-gray-200">
@@ -97,7 +107,10 @@ export default function Sidebar() {
                 
                 <li
                   key={child.label}
-                  onClick={() => router.push(child.path)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(child.path);
+                  }}
                   className="cursor-pointer hover:text-black"
                 >
                   {child.label}

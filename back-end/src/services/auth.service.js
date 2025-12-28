@@ -6,9 +6,16 @@ import { HTTP_STATUS } from "../utils/constants.js";
 
 export const loginService= async (email, password) => {
 
-    const user= await prisma.user.findUnique({
-        where:{email}
-    })
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        role: true,
+      },
+    });
+
     
     if(!user){
         const error= new Error("Invalid email or password");
@@ -28,6 +35,8 @@ export const loginService= async (email, password) => {
         id: user.id,
         role: user.role,
     });
+
+    
 
     return {
         token,

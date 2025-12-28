@@ -1,6 +1,7 @@
 import { acceptParentInviteService, forgotPasswordService, loginService, resetPasswordService } from "../services/auth.service.js";
 import { successResponse, errorResponse } from "../utils/response.js";
 import { HTTP_STATUS } from "../utils/constants.js";
+import prisma from "../config/prisma.js";
 
 export const login= async (req, res) => {
     try{
@@ -12,11 +13,19 @@ export const login= async (req, res) => {
                 HTTP_STATUS.BAD_REQUEST
             );
         }
-        const result = await loginService(email, password);
+        const { token, user } = await loginService(email, password);
+        res.cookie("token", token, {
+            httpOnly: true,
+            // secure: process.env.NODE_ENV === "production",
+            secure: false,
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            path: "/",
+        });
         return successResponse(
             res, 
             "Login successful", 
-            result,
+            { user },
             HTTP_STATUS.OK, 
         );
     }catch(error){
@@ -104,6 +113,57 @@ export const resetPassword = async (req, res) => {
       res,
       error.message || "Invalid or expired token",
       error.statusCode || HTTP_STATUS.BAD_REQUEST
+    );
+  }
+};
+
+
+export const logout = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: false,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
+};
+
+
+export const me = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+      },
+    });
+
+    if (!user) {
+      return errorResponse(
+        res,
+        "User not found",
+        HTTP_STATUS.NOT_FOUND
+      );
+    }
+
+    return successResponse(
+      res,
+      "User fetched successfully",
+      { user },
+      HTTP_STATUS.OK
+    );
+  } catch (error) {
+    return errorResponse(
+      res,
+      error.message || "Failed to fetch user",
+      HTTP_STATUS.INTERNAL_SERVER_ERROR
     );
   }
 };

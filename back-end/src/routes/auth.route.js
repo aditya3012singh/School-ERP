@@ -1,5 +1,6 @@
 import express from "express";
-import { acceptParentInvite, forgotPassword, login, resetPassword } from "../controllers/auth.controller.js";
+import { acceptParentInvite, forgotPassword, login, logout, me, resetPassword } from "../controllers/auth.controller.js";
+import { authMiddleware } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
@@ -42,8 +43,7 @@ router.post("/login", login);
 router.post("/accept-invite", acceptParentInvite);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
-
-
-
+router.post("/logout", logout);
+router.get("/me", authMiddleware, me)
 
 export default router;
