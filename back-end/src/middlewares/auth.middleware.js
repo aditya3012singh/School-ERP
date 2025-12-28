@@ -12,7 +12,9 @@ export const authMiddleware = async (req, res, next) => {
                 HTTP_STATUS.UNAUTHORIZED
             );
         }
-        const token = authHeader.split("")[1];
+        console.log("Auth Header:", authHeader);
+        const token = authHeader.split(" ")[1];
+        console.log("Token:", token);
         const decoded = verifyToken(token);
         req.user = {
             id: decoded.id,

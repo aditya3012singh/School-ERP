@@ -117,3 +117,13 @@ export const getTeacherPTMService = async (userId) => {
     orderBy: { date: "desc" },
   });
 };
+
+export const getAllPtmService = async () => {
+  return prisma.ptm.findMany({
+    include: {
+      teacher: {
+        select:{name:true}
+      }
+    }
+  });
+}

@@ -62,9 +62,9 @@ router.get(
   authMiddleware,
   roleMiddleware(ROLES.TEACHER),
   getTeacherTodayClasses
-);
+); 
 
-router,get(
+router.get(
   "/allteachers",
   authMiddleware,
   roleMiddleware(ROLES.ADMIN),

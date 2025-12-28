@@ -1,21 +1,14 @@
 import { NextResponse } from "next/server";
 
-export function middleware() {
-  return NextResponse.next();
+export function middleware(req) {
+  const isDashboard = req.nextUrl.pathname.startsWith("/dashboard");
+
+  if (isDashboard) {
+    // real protection will come later via cookies
+    return NextResponse.next();
+  }
 }
 
-
-
-
-
-
-
-// import { NextResponse } from "next/server";
-
-// export function middleware(req) {
-//   const token = req.cookies.get("token")?.value;
-
-//   if (!token && req.nextUrl.pathname.startsWith("/dashboard")) {
-//     return NextResponse.redirect(new URL("/auth/login", req.url));
-//   }
-// }
+export const config = {
+  matcher: ["/dashboard/:path*"],
+};

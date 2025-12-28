@@ -1,8 +1,9 @@
 import prisma from "../config/prisma.js";
 import { ROLES } from "../utils/constants.js";
-import { hashedPassword, hashedPassword } from "../utils/hash.js";
+
 import crypto from "crypto";
 import { sendEmail } from "../utils/mailer.js";
+import { hashed } from "../utils/hash.js";
 /**
  * Create Teacher (Admin only)
  */
@@ -24,7 +25,7 @@ export const createTeacherService = async ({
   }
 
   // Hash password
-  const hashedPassword = await hashedPassword(password);
+  const hashedPassword = await hashed(password);
 
   // Create user + teacher in transaction
   const teacher = await prisma.$transaction(async (tx) => {
@@ -75,7 +76,7 @@ export const createStudentService = async ({
     throw err;
   }
 
-  const hashedPassword = await hashedPassword(password);
+  const hashedPassword = await hashed(password);
 
   const student = await prisma.$transaction(async (tx) => {
     const user = await tx.user.create({
@@ -123,6 +124,8 @@ export const addParentToStudentService = async ({
     where: { id: studentId },
   });
 
+  console.log("Student:", student);
+
   if (!student) {
     const err = new Error("Student not found");
     err.statusCode = 404;
@@ -141,11 +144,11 @@ export const addParentToStudentService = async ({
   }
 
   // 3. Hash password
-  const hashedPassword = await hashedPassword(password);
+  const hashedPassword = await hashed(password);
 
   // 4. Transaction: create user + parent
   const parent = await prisma.$transaction(async (tx) => {
-    const user = await tx.user.creeate({
+    const user = await tx.user.create({
       data: {
         email,
         password: hashedPassword,
@@ -186,7 +189,7 @@ export const createAdminService = async ({ name, email, password }) => {
   }
 
   // Hash password
-  const hashedPassword = await hashedPassword(password);
+  const hashedPassword = await hashed(password);
 
   // Create admin user
   const admin = await prisma.user.create({

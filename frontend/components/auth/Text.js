@@ -1,6 +1,6 @@
 export default function LoginSideInfo() {
   return (
-    <div className="flex flex-col justify-center h-full px-10 ">
+    <div className="flex flex-col justify-center h-full px-10 text-white">
       <h2 className="text-4xl font-bold mb-4">
         Welcome to Your School Portal
       </h2>

@@ -12,21 +12,21 @@ const router = express.Router();
  * @access  ADMIN
  */
 router.post(
-  "/teachers",
+  "/teacher",
   authMiddleware,
   roleMiddleware(ROLES.ADMIN),
   createTeacher
 );
 
 router.post(
-  "/students",
+  "/student",
   authMiddleware,
   roleMiddleware(ROLES.ADMIN),
   createStudent
 );
 
 router.post(
-  "/students/:studentId/parents",
+  "/student/:studentId/parents",
   authMiddleware,
   roleMiddleware(ROLES.ADMIN),
   addParentToStudent

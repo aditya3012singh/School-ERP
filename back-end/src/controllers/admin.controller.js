@@ -188,7 +188,15 @@ export const getAdminDashboardStats = async (req, res) => {
 
 
 export const inviteParent = async (req, res) => {
-  const { email, studentId } = req.body;
-  await inviteParentService(email, studentId);
-  return successResponse(res, "Invitation sent");
+  try{
+    const { email, studentId } = req.body;
+    await inviteParentService(email, studentId);
+    return successResponse(res, "Invitation sent");
+  } catch (error) {
+    return errorResponse(
+      res,
+      error.message,
+      error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR
+    );
+  }
 };

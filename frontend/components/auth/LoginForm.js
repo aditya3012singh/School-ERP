@@ -1,26 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { login } from "@/store/api/auth.thunk";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const dispatch = useDispatch();
+  const router = useRouter();
+
+  const { user, loading, error } = useSelector((state) => state.auth);
+
+  // ✅ Redirect ONLY after successful login
+  useEffect(() => {
+    if (user?.role) {
+      router.replace(`/dashboard/${user.role.toLowerCase()}`);
+    }
+  }, [user, router]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (!email || !password) {
-      alert("Email and password are required");
-      return;
-    }
-
-    console.log("Login submitted", { email, password });
-    // dispatch(loginUser({ email, password }))
+    dispatch(login({ email, password }));
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
+    <form onSubmit={handleSubmit}
       className="w-full max-w-3xl min-h-96 space-y-6 bg-white p-10 rounded-lg shadow"
     >
       <h1 className="text-2xl font-semibold text-center">Login</h1>
@@ -53,12 +60,10 @@ export default function LoginForm() {
         />
       </div>
 
-      <button
-        type="submit"
-        className="w-full bg-black text-white py-2 rounded hover:opacity-90 transition"
-      >
-        Login
+      <button disabled={loading} className="border p-2 rounded-2xl bg-black text-white">
+        {loading ? "Logging in..." : "Login"}
       </button>
+      {error && <p>{error}</p>}
     </form>
   );
 }
