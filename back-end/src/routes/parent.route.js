@@ -5,6 +5,7 @@ import {
   getParentChildTimetable,
   getParentChildPTMs,
   updateParentProfile,
+  getAllParent,
 } from "../controllers/parent.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { roleMiddleware } from "../middlewares/role.middleware.js";
@@ -84,5 +85,11 @@ router.put(
   updateParentProfile
 );
 
+router.get(
+  "/allparents",
+  authMiddleware, 
+  roleMiddleware(ROLES.ADMIN),
+  getAllParent
+)
 
 export default router;

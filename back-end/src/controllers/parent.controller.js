@@ -4,6 +4,7 @@ import {
   getParentChildTimetableService,
   getParentChildPTMsService,
   updateParentProfileService,
+  getAllParentService,
 } from "../services/parent.service.js";
 import { successResponse, errorResponse } from "../utils/response.js";
 import { HTTP_STATUS } from "../utils/constants.js";
@@ -105,3 +106,22 @@ export const updateParentProfile = async (req, res) => {
   const updated = await updateParentProfileService(req.user.id, req.body);
   return successResponse(res, "Profile updated", updated);
 };
+
+export const getAllParent= async (req,res)=>{
+  try {
+      const data= await getAllParentService();
+
+      return successResponse(
+        res,
+        "All Parent fetched successfully",
+        data,
+        HTTP_STATUS.OK
+      )
+  } catch (error) {
+      return errorResponse(
+        res,
+        error.message,
+        error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR
+      );    
+  }
+}

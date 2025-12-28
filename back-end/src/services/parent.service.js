@@ -124,3 +124,15 @@ export const updateParentProfileService = async (userId, data) => {
     },
   });
 };
+
+export const getAllParentService = async () =>{
+  return prisma.parent.findMany({
+    select:{
+      id:true,
+      name:true,
+      contact:true,
+      student:true,
+      relation:true
+    }
+  })
+}
