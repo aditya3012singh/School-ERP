@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useDispatch } from "react-redux";
 import { logout } from "@/store/api/auth.thunk";
 
@@ -33,7 +32,7 @@ const adminMenu = [
   {
     label: "Timetable",
     children: [
-      { label: "Create timetable", path: "/dashboard/admin/timetable/create" },
+      { label: "Create Timetable", path: "/dashboard/admin/timetable/create" },
       { label: "All Timetables", path: "/dashboard/admin/timetable" },
     ],
   },
@@ -46,80 +45,81 @@ const adminMenu = [
   },
   {
     label: "Settings",
-    children: [
-      { label: "Profile", path: "/admin/profile" },
-      { label: "Logout" },
-    ],
+    children: [{ label: "Profile", path: "/dashboard/admin/profile" }],
   },
 ];
-
-
 
 export default function Sidebar() {
   const [activeMenu, setActiveMenu] = useState(null);
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const handleClick = async (item) => {
-    if (item.label === "Logout") {
-      await dispatch(logout());
-      router.replace("/auth/login");
-      return;
-    }
-
+  const handleMenuClick = (item) => {
     if (item.children) {
       setActiveMenu(activeMenu === item.label ? null : item.label);
-      return;
-    }
-
-    if (item.path) {
+    } else {
       router.push(item.path);
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await dispatch(logout()).unwrap();
+    } finally {
+      router.replace("/auth/login");
+    }
+  };
 
   return (
-    <aside className="w-60 h-screen border-r border-gray-200">
-      <div onClick={() => router.push("/dashboard/admin")} className="pb-8 cursor-pointer"><h1 className="text-xl font-bold p-4">School Dashboard</h1></div>
-      {adminMenu.map((item) => (
-        <div key={item.label} className="">
+    <aside className="w-60 h-screen border-r border-gray-200 flex flex-col">
+      {/* Logo */}
+      <div
+        onClick={() => router.push("/dashboard/admin")}
+        className="p-4 text-xl font-bold cursor-pointer border-b"
+      >
+        School Dashboard
+      </div>
 
-          {/* Parent Menu */}
-          <div
-            onClick={() => handleClick(item)}
-            className="p-4 cursor-pointer flex justify-between items-center hover:bg-gray-100"
-          >
-            <span className="font-semibold">{item.label}</span>
+      {/* Menu */}
+      <div className="flex-1 overflow-y-auto">
+        {adminMenu.map((item) => (
+          <div key={item.label}>
+            {/* Parent */}
+            <div
+              onClick={() => handleMenuClick(item)}
+              className="p-4 cursor-pointer flex justify-between items-center hover:bg-gray-100 font-semibold"
+            >
+              {item.label}
+              {item.children && (
+                <span>{activeMenu === item.label ? "−" : "+"}</span>
+              )}
+            </div>
 
-            {/* Show toggle icon only if children exist */}
-            {/* {item.children && (
-              <span className="text-lg">
-                {activeMenu === item.label ? "−" : "+"}
-              </span>
-            )} */}
+            {/* Children */}
+            {activeMenu === item.label && item.children && (
+              <ol className="pl-8 pb-3 space-y-2 text-sm text-gray-600">
+                {item.children.map((child) => (
+                  <li
+                    key={child.label}
+                    onClick={() => router.push(child.path)}
+                    className="cursor-pointer hover:text-black"
+                  >
+                    {child.label}
+                  </li>
+                ))}
+              </ol>
+            )}
           </div>
+        ))}
+      </div>
 
-          {/* Child Menu */}
-          {activeMenu === item.label && item.children && (
-            
-            <ol  className="pl-6 pb-3 space-y-2 text-sm text-gray-600">
-              {item.children.map((child) => (
-                
-                <li
-                  key={child.label}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    router.push(child.path);
-                  }}
-                  className="cursor-pointer hover:text-black"
-                >
-                  {child.label}
-                </li>
-              ))}
-            </ol>
-          )}
-        </div>
-      ))}
+      {/* Logout */}
+      <button
+        onClick={handleLogout}
+        className="p-4 text-left border-t text-red-600 hover:bg-red-50"
+      >
+        Logout
+      </button>
     </aside>
   );
 }
