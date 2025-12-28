@@ -1,4 +1,4 @@
-import { createTimetableService, getStudentTimetableService, getTeacherTimetableService } from "../services/timetable.service.js";
+import { createTimetableService, getAllTimetablesService, getStudentTimetableService, getTeacherTimetableService } from "../services/timetable.service.js";
 import { successResponse, errorResponse } from "../utils/response.js";
 import { HTTP_STATUS } from "../utils/constants.js";
 
@@ -88,6 +88,25 @@ export const getTeacherTimetable = async (req, res) => {
 
     const data = await getTeacherTimetableService(userId);
 
+    return successResponse(
+      res,
+      "Timetable fetched successfully",
+      data,
+      HTTP_STATUS.OK
+    );
+  } catch (error) {
+    return errorResponse(
+      res,
+      error.message,
+      error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR
+    );
+  }
+};
+
+
+export const getAllTimetable= async (req, res) => {
+  try {
+    const data = await getAllTimetablesService();
     return successResponse(
       res,
       "Timetable fetched successfully",

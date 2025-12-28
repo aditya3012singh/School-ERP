@@ -1,5 +1,5 @@
 import express from "express";
-import { createTimetable, getStudentTimetable, getTeacherTimetable } from "../controllers/timetable.controller.js";
+import { createTimetable, getAllTimetable, getStudentTimetable, getTeacherTimetable } from "../controllers/timetable.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { roleMiddleware } from "../middlewares/role.middleware.js";
 import { ROLES } from "../utils/constants.js";
@@ -30,6 +30,13 @@ router.get(
   authMiddleware,
   roleMiddleware(ROLES.TEACHER),
   getTeacherTimetable
+);
+
+router.get(
+  "/allTimetables",
+  authMiddleware,
+  roleMiddleware(ROLES.ADMIN),
+  getAllTimetable
 );
 
 export default router;

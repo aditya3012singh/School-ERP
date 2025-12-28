@@ -178,3 +178,55 @@ export const getTeacherTimetableService = async (userId) => {
     timetable: grouped,
   };
 };
+
+
+export const getAllTimetablesService = async () => {
+  const timetables = await prisma.timetable.findMany({
+    include: {
+      subject: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      teacher: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+    orderBy: [
+      { class: "asc" },
+      { section: "asc" },
+      { day: "asc" },
+      { startTime: "asc" },
+    ],
+  });
+
+  // Grouping: Class → Section → Day
+  const grouped = {};
+
+  for (const slot of timetables) {
+    if (!grouped[slot.class]) {
+      grouped[slot.class] = {};
+    }
+
+    if (!grouped[slot.class][slot.section]) {
+      grouped[slot.class][slot.section] = {};
+    }
+
+    if (!grouped[slot.class][slot.section][slot.day]) {
+      grouped[slot.class][slot.section][slot.day] = [];
+    }
+
+    grouped[slot.class][slot.section][slot.day].push({
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+      subject: slot.subject.name,
+      teacher: slot.teacher.name,
+    });
+  }
+
+  return grouped;
+};
