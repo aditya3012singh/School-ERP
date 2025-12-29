@@ -36,3 +36,43 @@ export const createTeacher = createAsyncThunk(
     }
   }
 );
+
+
+export const createStudent = createAsyncThunk(
+  "admin/createStudent",
+  async({name, email, password, rollNo, className, section, dob, address}, {rejectWithValue}) => {
+    try{
+      const res= await api.post("/admin/student", {
+        name,
+        email,
+        password,
+        rollNo,
+        className,
+        section,
+        dob,
+        address
+      });
+      return res.data?.data ?? res.data;
+    } catch(error){
+      return rejectWithValue(
+        error?.response?.data?.message ||
+        "Error creating the student"
+      );
+  }
+}
+);
+
+
+export const fetchStudents = createAsyncThunk(
+  "admin/fetchStudents",
+  async (_, thunkAPI) => {
+    try {
+      const res = await api.get("/student/allstudents");
+      console.error("Fetched students:", res);
+      // prefer the backend's `data` wrapper when present
+      return res.data?.data ?? res.data;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.response?.data?.message);
+    }
+  }
+);

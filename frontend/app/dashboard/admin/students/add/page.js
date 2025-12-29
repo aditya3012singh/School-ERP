@@ -1,8 +1,11 @@
 "use client";
 import React, { useState } from 'react';
 import { User, GraduationCap, Home, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { useAppDispatch } from '@/hooks/useAppDispatch';
+import { createStudent } from '@/store/api/admin.thunk';
 
 const CreateStudentForm = () => {
+  const dispatch = useAppDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
@@ -61,21 +64,32 @@ const CreateStudentForm = () => {
       return;
     }
 
-    setIsSubmitting(true);
+    
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      setIsSubmitting(true);
+      setSubmitStatus(null);
+      const payload= {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        rollNo: formData.rollNo,
+        className: formData.className,
+        section: formData.section,
+        dob: formData.dob,
+        address: formData.address
+      }
+      const res= await dispatch(createStudent(payload)).unwrap();
       
-      // In a real application, you would call your API here:
-      // const response = await fetch('/api/students', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData)
-      // });
-      // const data = await response.json();
-      
+      if (res?.error) {
+        // normalize error message
+        const errMsg = res.error?.message || (res.payload && typeof res.payload === 'string' ? res.payload : 'Failed to create teacher');
+        throw new Error(errMsg);
+      }
+
       setSubmitStatus('success');
+
+      // await dispatch(fetchStudents()); //refreshing the student list
       
       // Reset form after successful submission
       setTimeout(() => {
@@ -91,6 +105,8 @@ const CreateStudentForm = () => {
         });
         setSubmitStatus(null);
       }, 3000);
+
+     
       
     } catch (error) {
       setSubmitStatus('error');

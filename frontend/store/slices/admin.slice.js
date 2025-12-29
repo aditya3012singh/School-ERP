@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { createTeacher, fetchTeachers } from '../api/admin.thunk';
+import { createStudent, createTeacher, fetchStudents, fetchTeachers } from '../api/admin.thunk';
 
 const initialState = {
   teachers: [],
@@ -43,6 +43,28 @@ const adminSlice = createSlice({
       .addCase(createTeacher.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Failed to create teacher';
+      })
+      .addCase(createStudent.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createStudent.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(createStudent.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to create student';
+      })
+      .addCase(fetchStudents.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchStudents.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(fetchStudents.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to fetch students';
       });
   },
 });

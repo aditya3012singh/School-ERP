@@ -1,334 +1,278 @@
 "use client";
-import React, { useState } from 'react';
-import { User, GraduationCap, Home, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
-import { useAppDispatch } from '@/hooks/useAppDispatch';
-import { createTeacher, fetchTeachers } from '@/store/api/admin.thunk';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Search, ChevronDown, Phone, User } from 'lucide-react';
+import { fetchStudents } from '@/store/api/admin.thunk';
 
-const CreateTeacherForm = () => {
-  const dispatch = useAppDispatch();
-  const [showPassword, setShowPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState(null);
-  const [errors, setErrors] = useState({});
+const StudentDirectory = () => {
+  const dispatch = useDispatch();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClass, setSelectedClass] = useState('');
+  const [selectedSection, setSelectedSection] = useState('');
   
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    subject: '',
-    address: ''
+  // Get students from Redux store
+  const { students = [], loading = false, error = null } = useSelector((state) => state.admin || {});
+
+  // Fetch students when class or section changes
+  useEffect(() => {
+    if (selectedClass && selectedSection) {
+      dispatch(fetchStudents({ class: selectedClass, section: selectedSection }));
+    }
+  }, [selectedClass, selectedSection, dispatch]);
+
+  // Calculate attendance percentage from array
+  const calculateAttendance = (attendanceArray) => {
+    if (!attendanceArray || attendanceArray.length === 0) return 0;
+    const presentDays = attendanceArray.filter(record => record.status === 'present').length;
+    return Math.round((presentDays / attendanceArray.length) * 100);
+  };
+
+  // Calculate attendance label and color
+  const getAttendanceInfo = (attendancePercent) => {
+    if (attendancePercent >= 90) return { label: 'Excellent', color: 'bg-green-500' };
+    if (attendancePercent >= 80) return { label: 'Present', color: 'bg-green-500' };
+    if (attendancePercent >= 65) return { label: 'Average', color: 'bg-yellow-500' };
+    if (attendancePercent > 0) return { label: 'Low', color: 'bg-red-500' };
+    return { label: 'No Data', color: 'bg-gray-400' };
+  };
+
+  // Get random avatar color
+  const getAvatarColor = (id) => {
+    const colors = ['bg-orange-200', 'bg-gray-300', 'bg-orange-300', 'bg-yellow-200', 'bg-blue-200', 'bg-purple-200'];
+    return colors[id?.length % colors.length] || 'bg-gray-300';
+  };
+
+  // Filter students based on search term
+  const filteredStudents = (students || []).filter(student => {
+    const matchesSearch = student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         student.rollNo?.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
   });
 
-  const classes = ['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'];
-  const sections = ['A', 'B', 'C', 'D', 'E'];
-
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!formData.name.trim()) newErrors.name = 'Full name is required';
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email address is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-    if (!formData.subject) newErrors.subject = 'Subject is required';
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
-    try {
-      setIsSubmitting(true);
-      setSubmitStatus(null);
-
-      // dispatch the createTeacher thunk
-      const payload = {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        subject: formData.subject,
-      };
-
-      const res = await dispatch(createTeacher(payload));
-
-      if (res?.error) {
-        // normalize error message
-        const errMsg = res.error?.message || (res.payload && typeof res.payload === 'string' ? res.payload : 'Failed to create teacher');
-        throw new Error(errMsg);
-      }
-
-      setSubmitStatus('success');
-
-      // refresh teachers list
-      await dispatch(fetchTeachers());
-
-      // Reset form after successful submission
-      setTimeout(() => {
-        setFormData({ name: '', email: '', password: '', subject: '', address: '' });
-        setSubmitStatus(null);
-      }, 2000);
-
-    } catch (error) {
-      setSubmitStatus('error');
-      setErrors({ submit: error?.message || 'Failed to create teacher. Please try again.' });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleCancel = () => {
-    setFormData({
-      name: '',
-      email: '',
-      password: '',
-      subject: '',
-      address: '',
-    });
-    setErrors({});
-    setSubmitStatus(null);
+  const handleReset = () => {
+    setSearchTerm('');
+    setSelectedClass('');
+    setSelectedSection('');
   };
 
   return (
-    <div className=" bg-gray-50 p-6">
-      <div className=" mx-auto">
+    <div className="bg-gray-50 p-8 min-h-screen">
+      <div className="mx-auto">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create New Teacher</h1>
-          <p className="text-gray-600 text-sm">
-            Enter the teacher's details below to register them in the system. Please ensure all required fields are filled correctly.
-          </p>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Student Directory</h1>
+          <p className="text-gray-600">Manage student records, track attendance, and view parent contacts.</p>
         </div>
-        {/* Success/Error Message */}
-        {submitStatus === 'success' && (
-          <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-green-900">Teacher Created Successfully!</h3>
-              <p className="text-sm text-green-700">The teacher has been registered in the system.</p>
-            </div>
-          </div>
-        )}
 
-        {submitStatus === 'error' && errors.submit && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-red-900">Error</h3>
-              <p className="text-sm text-red-700">{errors.submit}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Form */}
-        <div className="bg-white rounded-2xl shadow-sm">
-          {/* Account Information */}
-          <div className="p-6 border-b border-gray-100">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <User className="w-5 h-5 text-blue-600" />
-              </div>
-              <h2 className="text-lg font-bold text-gray-900">Account Information</h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Full Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name <span className="text-red-500">*</span>
-                </label>
+        {/* Filters */}
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+          <div className="flex flex-wrap gap-4">
+            <div className="flex-1 min-w-64">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="e.g. John Doe"
-                  className={`w-full px-4 py-2.5 border ${errors.name ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm`}
+                  placeholder="Search by name or roll number..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
-                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
-              </div>
-
-              {/* Email Address */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="e.g. john.doe@school.edu"
-                  className={`w-full px-4 py-2.5 border ${errors.email ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm`}
-                />
-                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
               </div>
             </div>
+            <div className="relative">
+              <select
+                className="appearance-none px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer"
+                value={selectedClass}
+                onChange={(e) => setSelectedClass(e.target.value)}
+              >
+                <option value="">Select Class</option>
+                <option value="1">Class 1</option>
+                <option value="2">Class 2</option>
+                <option value="3">Class 3</option>
+                <option value="4">Class 4</option>
+                <option value="5">Class 5</option>
+                <option value="6">Class 6</option>
+                <option value="7">Class 7</option>
+                <option value="8">Class 8</option>
+                <option value="9">Class 9</option>
+                <option value="10">Class 10</option>
+                <option value="Class 1">Class 1 (Alternative)</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+            </div>
+            <div className="relative">
+              <select
+                className="appearance-none px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer"
+                value={selectedSection}
+                onChange={(e) => setSelectedSection(e.target.value)}
+              >
+                <option value="">Select Section</option>
+                <option value="A">Section A</option>
+                <option value="B">Section B</option>
+                <option value="C">Section C</option>
+                <option value="D">Section D</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+            </div>
+            <button
+              className="px-6 py-2 text-gray-700 font-medium hover:bg-gray-100 rounded-lg transition-colors"
+              onClick={handleReset}
+            >
+              Reset
+            </button>
+          </div>
+        </div>
 
-            {/* Password */}
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  className={`w-full px-4 py-2.5 border ${errors.password ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm pr-10`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+        {/* Loading State */}
+        {loading && (
+          <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+            <div className="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="mt-4 text-gray-600">Loading students...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-600">Error loading students: {error}</p>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!loading && !error && (!selectedClass || !selectedSection) && (
+          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+              <Search className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Select Class and Section</h3>
+            <p className="text-gray-600">Please select a class and section to view students</p>
+          </div>
+        )}
+
+        {/* Table */}
+        {!loading && !error && selectedClass && selectedSection && (
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Student Details
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Class Info
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Attendance
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Parent / Guardian
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredStudents.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="px-6 py-12 text-center">
+                        <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                          <User className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <p className="text-gray-500 font-medium">No students found</p>
+                        <p className="text-sm text-gray-400 mt-1">Try adjusting your search or filters</p>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredStudents.map((student) => {
+                      const attendancePercent = calculateAttendance(student.attendance);
+                      const attendanceInfo = getAttendanceInfo(attendancePercent);
+                      const parentName = student.parents?.[0]?.name || 'N/A';
+                      
+                      return (
+                        <tr key={student.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-10 h-10 rounded-full ${getAvatarColor(student.id)} flex items-center justify-center flex-shrink-0`}>
+                                <User className="w-6 h-6 text-gray-600" />
+                              </div>
+                              <div>
+                                <div className="font-semibold text-gray-900">{student.name}</div>
+                                <div className="text-sm text-gray-500">Roll No: {student.rollNo}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="font-medium text-gray-900">Class {student.class}</div>
+                            <div className="inline-block mt-1 px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded">
+                              Section {student.section}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="flex-1 min-w-32">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-sm font-semibold text-gray-900">{attendancePercent}%</span>
+                                  <span className="text-xs text-gray-500">{attendanceInfo.label}</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div
+                                    className={`${attendanceInfo.color} h-2 rounded-full transition-all`}
+                                    style={{ width: `${attendancePercent}%` }}
+                                  ></div>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-start gap-2 mb-2">
+                              <User className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <span className="font-medium text-gray-900">{parentName}</span>
+                              </div>
+                            </div>
+                            {student.user?.email && (
+                              <div className="flex items-center gap-2 text-blue-600 text-sm">
+                                <Phone className="w-4 h-4 flex-shrink-0" />
+                                <span className="break-all">{student.user.email}</span>
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                Showing <span className="font-semibold">{filteredStudents.length}</span> student{filteredStudents.length !== 1 ? 's' : ''}
+              </div>
+              <div className="flex gap-2">
+                <button className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                  Previous
+                </button>
+                <button className="px-4 py-2 text-sm text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                  Next
                 </button>
               </div>
-              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-              <p className="text-xs text-gray-500 mt-1">Min. 8 characters with letters & numbers.</p>
             </div>
           </div>
-
-          {/* Subject Details */}
-          <div className="p-6 border-b border-gray-100">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <GraduationCap className="w-5 h-5 text-blue-600" />
-              </div>
-              <h2 className="text-lg font-bold text-gray-900">Subject Details</h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Roll Number */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Subject <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  placeholder="e.g. 2024001"
-                  className={`w-full px-4 py-2.5 border ${errors.subject ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm`}
-                />
-                {errors.subject && <p className="text-red-500 text-xs mt-1">{errors.subject}</p>}
-              </div>
-
-              {/* Class */}
-          
-
-              {/* Section */}
-            </div>
-          </div>
-
-          {/* Personal Information */}
-          <div className="p-6">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <Home className="w-5 h-5 text-blue-600" />
-              </div>
-              <h2 className="text-lg font-bold text-gray-900">Personal Information</h2>
-            </div>
-
-            {/* Date of Birth */}
-            {/* <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Date of Birth <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                name="dob"
-                value={formData.dob}
-                onChange={handleChange}
-                placeholder="mm/dd/yyyy"
-                className={`w-full px-4 py-2.5 border ${errors.dob ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm`}
-              />
-              {errors.dob && <p className="text-red-500 text-xs mt-1">{errors.dob}</p>}
-            </div> */}
-
-            {/* Address */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Address <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                placeholder="Enter full residential address..."
-                rows="3"
-                className={`w-full px-4 py-2.5 border ${errors.address ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none`}
-              />
-              {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
-            </div>
-          </div>
-
-          {/* Form Actions */}
-          <div className="p-6 bg-gray-50 rounded-b-2xl flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium text-sm"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  Creating...
-                </>
-              ) : (
-                'Create Teacher'
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* API Integration Note */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <h3 className="font-semibold text-blue-900 text-sm mb-2">🔌 API Integration Ready</h3>
-          <p className="text-xs text-blue-700 mb-3">This form is ready to connect to your backend. To integrate with your createStudentService:</p>
-          <div className="bg-white rounded-lg p-3 text-xs">
-            <code className="text-blue-900">
-              <div>const response = await fetch('/api/students', {'{'}</div>
-              <div className="ml-4">method: 'POST',</div>
-              <div className="ml-4">headers: {'{'} 'Content-Type': 'application/json' {'}'},</div>
-              <div className="ml-4">body: JSON.stringify(formData)</div>
-              <div>{'});'}</div>
-            </code>
-          </div>
-          <p className="text-xs text-blue-700 mt-2">Form data matches your service parameters: name, email, password, rollNo, className, section, dob, address</p>
-        </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default CreateTeacherForm;
+export default StudentDirectory;
