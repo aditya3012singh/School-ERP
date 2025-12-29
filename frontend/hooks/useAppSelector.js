@@ -1,4 +1,3 @@
 import { useSelector } from "react-redux";
 
-
-export const user = useSelector((state) => state.auth.user);
+export const useAppSelector = (selector) => useSelector(selector);

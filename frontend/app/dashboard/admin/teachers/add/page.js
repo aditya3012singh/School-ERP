@@ -1,8 +1,11 @@
 "use client";
 import React, { useState } from 'react';
 import { User, GraduationCap, Home, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { useAppDispatch } from '@/hooks/useAppDispatch';
+import { createTeacher, fetchTeachers } from '@/store/api/admin.thunk';
 
 const CreateTeacherForm = () => {
+  const dispatch = useAppDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
@@ -12,10 +15,7 @@ const CreateTeacherForm = () => {
     name: '',
     email: '',
     password: '',
-    rollNo: '',
-    className: '',
-    section: '',
-    dob: '',
+    subject: '',
     address: ''
   });
 
@@ -51,42 +51,41 @@ const CreateTeacherForm = () => {
   };
 
   const handleSubmit = async () => {
-    setSubmitStatus(null);
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsSubmitting(true);
-
+    if (!validateForm()) return;
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // In a real application, you would call your API here:
-      // const response = await fetch('/api/students', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData)
-      // });
-      // const data = await response.json();
-      
+      setIsSubmitting(true);
+      setSubmitStatus(null);
+
+      // dispatch the createTeacher thunk
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        subject: formData.subject,
+      };
+
+      const res = await dispatch(createTeacher(payload));
+
+      if (res?.error) {
+        // normalize error message
+        const errMsg = res.error?.message || (res.payload && typeof res.payload === 'string' ? res.payload : 'Failed to create teacher');
+        throw new Error(errMsg);
+      }
+
       setSubmitStatus('success');
-      
+
+      // refresh teachers list
+      await dispatch(fetchTeachers());
+
       // Reset form after successful submission
       setTimeout(() => {
-        setFormData({
-          name: '',
-          email: '',
-          password: '',
-          subject: '',
-        });
+        setFormData({ name: '', email: '', password: '', subject: '', address: '' });
         setSubmitStatus(null);
-      }, 3000);
-      
+      }, 2000);
+
     } catch (error) {
       setSubmitStatus('error');
-      setErrors({ submit: error.message || 'Failed to create student. Please try again.' });
+      setErrors({ submit: error?.message || 'Failed to create teacher. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -98,6 +97,7 @@ const CreateTeacherForm = () => {
       email: '',
       password: '',
       subject: '',
+      address: '',
     });
     setErrors({});
     setSubmitStatus(null);
