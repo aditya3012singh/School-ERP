@@ -68,8 +68,6 @@ export const fetchStudents = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const res = await api.get("/student/allstudents");
-      console.error("Fetched students:", res);
-      // prefer the backend's `data` wrapper when present
       return res.data?.data ?? res.data;
     } catch (err) {
       return thunkAPI.rejectWithValue(err.response?.data?.message);

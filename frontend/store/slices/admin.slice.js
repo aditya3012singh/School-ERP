@@ -3,10 +3,10 @@ import { createStudent, createTeacher, fetchStudents, fetchTeachers } from '../a
 
 const initialState = {
   teachers: [],
+  students: [], // ✅ ADD THIS
   loading: false,
   error: null,
 };
-
 
 const adminSlice = createSlice({
   name: 'admin',
@@ -48,19 +48,25 @@ const adminSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(createStudent.fulfilled, (state) => {
+      .addCase(createStudent.fulfilled, (state, action) => {
         state.loading = false;
+        // ✅ Optionally add the new student to the array
+        if (action.payload) {
+          state.students.push(action.payload);
+        }
       })
       .addCase(createStudent.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Failed to create student';
       })
+      // Fetch Students
       .addCase(fetchStudents.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchStudents.fulfilled, (state) => {
+      .addCase(fetchStudents.fulfilled, (state, action) => {
         state.loading = false;
+        state.students = action.payload; // ✅ FIX: Save the students data
       })
       .addCase(fetchStudents.rejected, (state, action) => {
         state.loading = false;
