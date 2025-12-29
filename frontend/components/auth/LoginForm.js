@@ -2,32 +2,26 @@
 
 import { login } from "@/store/api/auth.thunk";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const dispatch = useDispatch();
   const router = useRouter();
 
-  const { user, loading, error } = useSelector((state) => state.auth);
-
-  // useEffect(() => {
-  //   if (user?.role) {
-  //     router.replace(`/dashboard/${user.role.toLowerCase()}`);
-  //   }
-  // }, [user, router]);
+  const { loading, error } = useSelector((state) => state.auth);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) return;
 
     try {
-      const result = await dispatch(login({ email, password }));
-      // ✅ result IS the user object
-      router.replace(`/dashboard/${result.payload.role.toLowerCase()}`);
+      const result = await dispatch(login({ email, password })).unwrap();
+      router.replace(`/dashboard/${result.role.toLowerCase()}`);
     } catch (err) {
       console.error("Login failed:", err);
     }
@@ -36,33 +30,73 @@ export default function LoginForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full max-w-3xl min-h-96 space-y-6 bg-white p-10 rounded-lg shadow"
+      className="w-full max-w-md space-y-6 bg-white p-8 rounded-xl shadow-lg border"
     >
-      <h1 className="text-2xl font-semibold text-center">Login</h1>
+      {/* Heading */}
+      <h1 className="text-2xl font-bold text-center text-gray-800">
+        Welcome Back
+      </h1>
+      <p className="text-sm text-center text-gray-500">
+        Login to access your dashboard
+      </p>
 
-      <div>
-        <label>Email</label>
+      {/* Error */}
+      {error && (
+        <div className="bg-red-50 border border-red-300 text-red-600 p-3 rounded-md text-sm">
+          {error}
+        </div>
+      )}
+
+      {/* Email */}
+      <div className="space-y-1">
+        <label className="text-sm font-medium text-gray-700">
+          Email address
+        </label>
         <input
           type="email"
+          placeholder="you@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          disabled={loading}
+          required
+          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
         />
       </div>
 
-      <div>
-        <label>Password</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+      {/* Password */}
+      <div className="space-y-1">
+        <label className="text-sm font-medium text-gray-700">
+          Password
+        </label>
+
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={loading}
+            required
+            className="w-full px-4 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-2.5 text-sm text-gray-500 hover:text-gray-700"
+          >
+            {showPassword ? "Hide" : "Show"}
+          </button>
+        </div>
       </div>
 
-      <button disabled={loading}>
+      {/* Submit */}
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-medium transition disabled:opacity-60 disabled:cursor-not-allowed"
+      >
         {loading ? "Logging in..." : "Login"}
       </button>
-
-      {error && <p>{error}</p>}
     </form>
   );
 }
