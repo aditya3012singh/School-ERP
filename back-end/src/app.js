@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import { errorMiddleware } from './middlewares/error.middleware.js';
 import adminRoutes from "./routes/admin.route.js";
 import attendanceRoutes from "./routes/attendance.route.js";
-import timetableRoutes from "./routes/timetable.route.js";
+import timetables from "./routes/timetable.route.js";
 import ptmRoutes from "./routes/ptm.route.js";
 import studentRoutes from "./routes/student.route.js";
 import parentRoutes from "./routes/parent.route.js";
@@ -39,7 +39,7 @@ app.get("/", (_req, res) => {
 app.use('/api/auth', authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/attendance", attendanceRoutes);
-app.use("/api/timetable", timetableRoutes);
+app.use("/api/timetable", timetables);
 app.use("/api/ptm", ptmRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/parent", parentRoutes);

@@ -127,3 +127,57 @@ export const getAllPtmService = async () => {
     }
   });
 }
+
+export const createPtmForAllStudentsService = async ({
+  teacherId,
+  className,
+  section,
+  date,
+  time,
+}) => {
+  return prisma.$transaction(async (tx) => {
+    // 1️⃣ Validate teacher
+    const teacher = await tx.teacher.findUnique({
+      where: { id: teacherId },
+    });
+
+    if (!teacher) {
+      const err = new Error("Teacher not found");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    // 2️⃣ Get students of given class & section
+    const students = await tx.student.findMany({
+      where: {
+        class: className,
+        section: section,
+      },
+    });
+
+    if (students.length === 0) {
+      const err = new Error("No students found for this class & section");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    // 3️⃣ Create PTMs
+    const ptmData = students.map((student) => ({
+      studentId: student.id,
+      teacherId,
+      date: new Date(date),
+      time,
+      status: PTM_STATUS.SCHEDULED,
+    }));
+
+    // 4️⃣ Bulk create (faster + safe)
+    await tx.ptm.createMany({
+      data: ptmData,
+    });
+
+    return {
+      message: "PTM scheduled successfully for all students",
+      totalStudents: students.length,
+    };
+  });
+};

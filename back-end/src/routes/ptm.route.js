@@ -4,6 +4,7 @@ import {
   getStudentPTMs,
   getParentPTMs,
   getTeacherPTMs,
+  createPTMForClass,
 } from "../controllers/ptm.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { roleMiddleware } from "../middlewares/role.middleware.js";
@@ -44,5 +45,13 @@ router.get(
   roleMiddleware(ROLES.TEACHER),
   getTeacherPTMs
 );
+
+router.post(
+  "/ptm/class",
+  authMiddleware,
+  roleMiddleware(ROLES.ADMIN, ROLES.TEACHER),
+  createPTMForClass
+);
+
 
 export default router;
