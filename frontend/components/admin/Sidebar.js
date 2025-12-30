@@ -3,13 +3,27 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
+import {
+  LayoutDashboard,
+  Users,
+  GraduationCap,
+  UserPlus,
+  CalendarDays,
+  Settings,
+  LogOut,
+  ChevronDown,
+} from "lucide-react";
 import { logout } from "@/store/api/auth.thunk";
 
 const adminMenu = [
-  { label: "Dashboard", path: "/dashboard/admin" },
-
+  {
+    label: "Dashboard",
+    path: "/dashboard/admin",
+    icon: LayoutDashboard,
+  },
   {
     label: "Students",
+    icon: Users,
     children: [
       { label: "All Students", path: "/dashboard/admin/students" },
       { label: "Add Student", path: "/dashboard/admin/students/add" },
@@ -17,6 +31,7 @@ const adminMenu = [
   },
   {
     label: "Teachers",
+    icon: GraduationCap,
     children: [
       { label: "All Teachers", path: "/dashboard/admin/teachers" },
       { label: "Add Teacher", path: "/dashboard/admin/teachers/add" },
@@ -24,6 +39,7 @@ const adminMenu = [
   },
   {
     label: "Parents",
+    icon: UserPlus,
     children: [
       { label: "Invite Parent", path: "/dashboard/admin/parents/invite" },
       { label: "Parent List", path: "/dashboard/admin/parents" },
@@ -31,6 +47,7 @@ const adminMenu = [
   },
   {
     label: "Timetable",
+    icon: CalendarDays,
     children: [
       { label: "Create Timetable", path: "/dashboard/admin/timetable/create" },
       { label: "All Timetables", path: "/dashboard/admin/timetable" },
@@ -38,6 +55,7 @@ const adminMenu = [
   },
   {
     label: "PTM",
+    icon: CalendarDays,
     children: [
       { label: "Schedule PTM", path: "/dashboard/admin/ptm/create" },
       { label: "PTM List", path: "/dashboard/admin/ptm" },
@@ -45,6 +63,7 @@ const adminMenu = [
   },
   {
     label: "Settings",
+    icon: Settings,
     children: [{ label: "Profile", path: "/dashboard/admin/profile" }],
   },
 ];
@@ -71,55 +90,77 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-60 h-screen border-r border-gray-200 flex flex-col">
+    <aside className="w-64 h-screen bg-white border-r flex flex-col">
       {/* Logo */}
       <div
         onClick={() => router.push("/dashboard/admin")}
-        className="p-4 text-xl font-bold cursor-pointer border-b"
+        className="px-6 bg-white py-4 text-xl font-bold text-black border-b cursor-pointer sticky top-0 z-10"
       >
-        School Dashboard
+        School Admin
       </div>
 
       {/* Menu */}
-      <div className="flex-1 overflow-y-auto">
-        {adminMenu.map((item) => (
-          <div key={item.label}>
-            {/* Parent */}
-            <div
-              onClick={() => handleMenuClick(item)}
-              className="p-4 cursor-pointer flex justify-between items-center hover:bg-gray-100 font-semibold"
-            >
-              {item.label}
-              {item.children && (
-                <span>{activeMenu === item.label ? "−" : "+"}</span>
+      <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-1">
+        {adminMenu.map((item) => {
+          const Icon = item.icon;
+          const isOpen = activeMenu === item.label;
+
+          return (
+            <div key={item.label}>
+              {/* Parent */}
+              <button
+                onClick={() => handleMenuClick(item)}
+                className={`w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium transition
+                  ${
+                    isOpen
+                      ? "bg-indigo-50 text-blue-800"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+              >
+                <span className="flex items-center gap-3">
+                  <Icon size={18} />
+                  {item.label}
+                </span>
+
+                {item.children && (
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform ${
+                      isOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                )}
+              </button>
+
+              {/* Children */}
+              {isOpen && item.children && (
+                <div className="ml-10 mt-2 space-y-1">
+                  {item.children.map((child) => (
+                    <button
+                      key={child.label}
+                      onClick={() => router.push(child.path)}
+                      className="block w-full text-left text-sm text-gray-600 hover:text-blue-800 transition"
+                    >
+                      {child.label}
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
-
-            {/* Children */}
-            {activeMenu === item.label && item.children && (
-              <ol className="pl-8 pb-3 space-y-2 text-sm text-gray-600">
-                {item.children.map((child) => (
-                  <li
-                    key={child.label}
-                    onClick={() => router.push(child.path)}
-                    className="cursor-pointer hover:text-black"
-                  >
-                    {child.label}
-                  </li>
-                ))}
-              </ol>
-            )}
-          </div>
-        ))}
-      </div>
+          );
+        })}
+      </nav>
 
       {/* Logout */}
-      <button
-        onClick={handleLogout}
-        className="p-4 text-left border-t text-red-600 hover:bg-red-50"
-      >
-        Logout
-      </button>
+      <div className=" p-4">
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 text-red-600 hover:bg-red-50 px-4 py-2 rounded-lg w-full transition"
+        >
+          <LogOut size={18} />
+          Logout
+        </button>
+      </div>
     </aside>
   );
 }

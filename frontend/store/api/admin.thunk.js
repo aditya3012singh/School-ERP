@@ -74,3 +74,30 @@ export const fetchStudents = createAsyncThunk(
     }
   }
 );
+
+
+export const fetchDashboardStats = createAsyncThunk(
+  "admin/fetchDashboardStats",
+  async (_, thunkAPI) => {
+    try {
+      const res = await api.get("/admin/dashboard");
+      console.error("Dashboard Stats Response:", res);
+      return res.data?.data ?? res.data;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.response?.data?.message);
+    }
+  }
+);
+
+
+export const fetchParents = createAsyncThunk(
+  "admin/fetchParents",
+  async (_, thunkAPI) => {
+    try {
+      const res = await api.get("/parent/allparents");
+      return res.data.data;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.response?.data?.message);
+    }
+  }
+);

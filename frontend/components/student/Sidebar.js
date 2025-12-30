@@ -1,79 +1,84 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import {
+  LayoutDashboard,
+  CalendarCheck,
+  CalendarDays,
+  Users,
+  User,
+  LogOut,
+} from "lucide-react";
 
 const studentMenu = [
-  { label: "Dashboard", path: "/dashboard/student" },
-
-  { label: "Attendance", path: "/dashboard/student/attendance" },
-
-  { label: "Timetable", path: "/dashboard/student/timetable" },
-  { label: "PTM", path: "/dashboard/student/ptm" },
-
-  { label: "Profile", path: "/dashboard/student/profile" },
-
-  { label: "Logout", path: "/logout" },
+  {
+    label: "Dashboard",
+    path: "/dashboard/student",
+    icon: LayoutDashboard,
+  },
+  {
+    label: "Attendance",
+    path: "/dashboard/student/attendance",
+    icon: CalendarCheck,
+  },
+  {
+    label: "Timetable",
+    path: "/dashboard/student/timetable",
+    icon: CalendarDays,
+  },
+  {
+    label: "PTM",
+    path: "/dashboard/student/ptm",
+    icon: Users,
+  },
+  {
+    label: "Profile",
+    path: "/dashboard/student/profile",
+    icon: User,
+  },
 ];
 
-
-
-
 export default function Sidebar() {
-  const [activeMenu, setActiveMenu] = useState(null);
   const router = useRouter();
 
-  const handleClick = (item) => {
-    // If item has children → toggle
-    if (item.children) {
-      setActiveMenu(activeMenu === item.label ? null : item.label);
-    } 
-    // If item has path → navigate
-    else if (item.path) {
-      router.push(item.path);
-    }
-  };
-
   return (
-    <aside className="w-60 h-screen border-r border-gray-200">
-      <div onClick={() => router.push("/dashboard/student")} className="pb-8 cursor-pointer"><h1 className="text-xl font-bold p-4">School Dashboard</h1></div>
-      {studentMenu.map((item) => (
-        <div key={item.label} className="">
+    <aside className="w-64 h-screen bg-white border-r flex flex-col">
+      {/* Logo */}
+      <div
+        onClick={() => router.push("/dashboard/student")}
+        className="px-6 py-4 text-xl font-bold text-black border-b cursor-pointer"
+      >
+        Student Panel
+      </div>
 
-          {/* Parent Menu */}
-          <div
-            onClick={() => handleClick(item)}
-            className="p-4 cursor-pointer flex justify-between items-center hover:bg-gray-100"
-          >
-            <span className="font-semibold">{item.label}</span>
+      {/* Menu */}
+      <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-1">
+        {studentMenu.map((item) => {
+          const Icon = item.icon;
 
-            {/* Show toggle icon only if children exist */}
-            {/* {item.children && (
-              <span className="text-lg">
-                {activeMenu === item.label ? "−" : "+"}
-              </span>
-            )} */}
-          </div>
+          return (
+            <button
+              key={item.label}
+              onClick={() => router.push(item.path)}
+              className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
+            >
+              <Icon size={18} />
+              {item.label}
+            </button>
+          );
+        })}
+      </nav>
 
-          {/* Child Menu */}
-          {activeMenu === item.label && item.children && (
-            
-            <ol  className="pl-6 pb-3 space-y-2 text-sm text-gray-600">
-              {item.children.map((child) => (
-                
-                <li
-                  key={child.label}
-                  onClick={() => router.push(child.path)}
-                  className="cursor-pointer hover:text-black"
-                >
-                  {child.label}
-                </li>
-              ))}
-            </ol>
-          )}
-        </div>
-      ))}
+      {/* Logout */}
+      <div className="border-t p-4">
+        <button
+          onClick={() => router.replace("/auth/login")}
+          className="flex items-center gap-3 text-red-600 hover:bg-red-50 px-4 py-2 rounded-lg w-full transition"
+        >
+          <LogOut size={18} />
+          Logout
+        </button>
+      </div>
     </aside>
   );
 }

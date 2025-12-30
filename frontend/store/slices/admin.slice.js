@@ -1,15 +1,23 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { createStudent, createTeacher, fetchStudents, fetchTeachers } from '../api/admin.thunk';
+import { createSlice } from "@reduxjs/toolkit";
+import {
+  createStudent,
+  createTeacher,
+  fetchStudents,
+  fetchTeachers,
+  fetchParents,
+  fetchDashboardStats,
+} from "../api/admin.thunk";
 
 const initialState = {
   teachers: [],
-  students: [], // ✅ ADD THIS
+  students: [],
+  parents: [], // ✅ ADD THIS
   loading: false,
   error: null,
 };
 
 const adminSlice = createSlice({
-  name: 'admin',
+  name: "admin",
   initialState,
   reducers: {
     clearError: (state) => {
@@ -18,8 +26,8 @@ const adminSlice = createSlice({
     resetAdminState: () => initialState,
   },
   extraReducers: (builder) => {
-    // Fetch Teachers
     builder
+      /* ================= TEACHERS ================= */
       .addCase(fetchTeachers.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -30,51 +38,81 @@ const adminSlice = createSlice({
       })
       .addCase(fetchTeachers.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'Failed to fetch teachers';
+        state.error = action.payload || "Failed to fetch teachers";
       })
+
       .addCase(createTeacher.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(createTeacher.fulfilled, (state, action) => {
         state.loading = false;
-        state.teachers.push(action.payload);
+        if (action.payload) {
+          state.teachers.push(action.payload);
+        }
       })
       .addCase(createTeacher.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'Failed to create teacher';
+        state.error = action.payload || "Failed to create teacher";
       })
-      .addCase(createStudent.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(createStudent.fulfilled, (state, action) => {
-        state.loading = false;
-        // ✅ Optionally add the new student to the array
-        if (action.payload) {
-          state.students.push(action.payload);
-        }
-      })
-      .addCase(createStudent.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload || 'Failed to create student';
-      })
-      // Fetch Students
+
+      /* ================= STUDENTS ================= */
       .addCase(fetchStudents.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchStudents.fulfilled, (state, action) => {
         state.loading = false;
-        state.students = action.payload; // ✅ FIX: Save the students data
+        state.students = action.payload;
       })
       .addCase(fetchStudents.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'Failed to fetch students';
+        state.error = action.payload || "Failed to fetch students";
+      })
+
+      .addCase(createStudent.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createStudent.fulfilled, (state, action) => {
+        state.loading = false;
+        if (action.payload) {
+          state.students.push(action.payload);
+        }
+      })
+      .addCase(createStudent.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to create student";
+      })
+
+      /* ================= PARENTS ================= */
+      .addCase(fetchParents.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchParents.fulfilled, (state, action) => {
+        state.loading = false;
+        state.parents = action.payload; // ✅ STORE PARENTS
+      })
+      .addCase(fetchParents.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to fetch parents";
+      })
+
+      /* ================= DASHBOARD ================= */
+      .addCase(fetchDashboardStats.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDashboardStats.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(fetchDashboardStats.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to fetch dashboard stats";
       });
   },
 });
 
 export const { clearError, resetAdminState } = adminSlice.actions;
-
 export default adminSlice.reducer;

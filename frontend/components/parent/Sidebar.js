@@ -2,87 +2,130 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import {
+  LayoutDashboard,
+  CalendarCheck,
+  CalendarDays,
+  Users,
+  Settings,
+  LogOut,
+  ChevronDown,
+} from "lucide-react";
 
 const parentMenu = [
-  { label: "Dashboard", path: "/dashboard/parent" },
+  {
+    label: "Dashboard",
+    path: "/dashboard/parent",
+    icon: LayoutDashboard,
+  },
   {
     label: "Attendance",
     path: "/dashboard/parent/attendance",
+    icon: CalendarCheck,
   },
   {
     label: "Timetable",
     path: "/dashboard/parent/timetable",
+    icon: CalendarDays,
   },
   {
     label: "PTM",
     path: "/dashboard/parent/ptm",
+    icon: Users,
   },
   {
     label: "Settings",
+    icon: Settings,
     children: [
-      { label: "Profile", path: "/teacher/profile" },
-      { label: "Logout", path: "/logout" },
+      { label: "Profile", path: "/dashboard/parent/profile" },
     ],
   },
 ];
-
-
 
 export default function Sidebar() {
   const [activeMenu, setActiveMenu] = useState(null);
   const router = useRouter();
 
   const handleClick = (item) => {
-    // If item has children → toggle
     if (item.children) {
       setActiveMenu(activeMenu === item.label ? null : item.label);
-    } 
-    // If item has path → navigate
-    else if (item.path) {
+    } else {
       router.push(item.path);
     }
   };
 
   return (
-    <aside className="w-60 h-screen border-r border-gray-200">
-      <div onClick={() => router.push("/dashboard/parent")} className="pb-8 cursor-pointer"><h1 className="text-xl font-bold p-4">Parent Dashboard</h1></div>
-      {parentMenu.map((item) => (
-        <div key={item.label} className="">
+    <aside className="w-64 h-screen bg-white border-r flex flex-col">
+      {/* Logo */}
+      <div
+        onClick={() => router.push("/dashboard/parent")}
+        className="px-6 py-4 text-xl font-bold text-black border-b cursor-pointer"
+      >
+        Parent Panel
+      </div>
 
-          {/* Parent Menu */}
-          <div
-            onClick={() => handleClick(item)}
-            className="p-4 cursor-pointer flex justify-between items-center hover:bg-gray-100"
-          >
-            <span className="font-semibold">{item.label}</span>
+      {/* Menu */}
+      <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-1">
+        {parentMenu.map((item) => {
+          const Icon = item.icon;
+          const isOpen = activeMenu === item.label;
 
-            {/* Show toggle icon only if children exist */}
-            {/* {item.children && (
-              <span className="text-lg">
-                {activeMenu === item.label ? "−" : "+"}
-              </span>
-            )} */}
-          </div>
+          return (
+            <div key={item.label}>
+              {/* Parent Item */}
+              <button
+                onClick={() => handleClick(item)}
+                className={`w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium transition
+                  ${
+                    isOpen
+                      ? "bg-indigo-50 text-blue-800"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+              >
+                <span className="flex items-center gap-3">
+                  <Icon size={18} />
+                  {item.label}
+                </span>
 
-          {/* Child Menu */}
-          {activeMenu === item.label && item.children && (
-            
-            <ol  className="pl-6 pb-3 space-y-2 text-sm text-gray-600">
-              {item.children.map((child) => (
-                
-                <li
-                  key={child.label}
-                  onClick={() => router.push(child.path)}
-                  className="cursor-pointer hover:text-black"
-                >
-                  {child.label}
-                </li>
-              ))}
-            </ol>
-          )}
-        </div>
-      ))}
+                {item.children && (
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform ${
+                      isOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                )}
+              </button>
+
+              {/* Child Items */}
+              {isOpen && item.children && (
+                <div className="ml-10 mt-2 space-y-1">
+                  {item.children.map((child) => (
+                    <button
+                      key={child.label}
+                      onClick={() => router.push(child.path)}
+                      className="block w-full text-left text-sm text-gray-600 hover:text-blue-800 transition"
+                    >
+                      {child.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </nav>
+
+      {/* Logout */}
+      <div className="border-t p-4">
+        <button
+          onClick={() => router.replace("/auth/login")}
+          className="flex items-center gap-3 text-red-600 hover:bg-red-50 px-4 py-2 rounded-lg w-full transition"
+        >
+          <LogOut size={18} />
+          Logout
+        </button>
+      </div>
     </aside>
   );
 }

@@ -1,242 +1,257 @@
-import React from 'react';
-import { GraduationCap, Users, UserCheck, BookOpen, Clock, Calendar, Search, Bell } from 'lucide-react';
+"use client";
 
-const SchoolDashboard = () => {
-  const dashboardData = {
-    users: {
-      students: { total: 1240, growth: 5, growthDirection: 'up' },
-      teachers: { total: 84, type: 'Full-time staff' },
-      parents: { total: 2100, status: 'Active accounts' }
-    },
-    academics: {
-      subjects: { total: 42, label: 'Active Subjects' },
-      timetableSlots: { total: 120, label: 'Timetable Slots' }
-    },
-    attendance: {
-      today: { percentage: 94, present: 1165, total: 1240, absent: 75, target: 95 },
-      weekly: [
-        { day: 'MON', percentage: 80 },
-        { day: 'TUE', percentage: 85 },
-        { day: 'TODAY', percentage: 94, isToday: true },
-        { day: 'THU', percentage: null },
-        { day: 'FRI', percentage: null }
-      ]
-    },
-    ptm: {
-      upcoming: [
-        { id: 1, title: 'Grade 5 & 6 Meeting', date: 'OCT', day: '24', time: '09:00 AM - 12:00 PM' },
-        { id: 2, title: 'Grade 10 Review', date: 'OCT', day: '28', time: '10:00 AM - 02:00 PM' },
-        { id: 3, title: 'Sports Day Prep', date: 'NOV', day: '05', time: '03:00 PM - 05:00 PM' }
-      ]
-    }
-  };
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  GraduationCap,
+  Users,
+  UserCheck,
+  BookOpen,
+  Clock,
+  Calendar,
+  Search,
+  Bell,
+  ArrowUpRight,
+} from "lucide-react";
+import { fetchDashboardStats } from "@/store/api/admin.thunk";
+
+export default function SchoolDashboard() {
+  const dispatch = useDispatch();
+  const { stats, loading, error } = useSelector(
+    (state) => state.adminDashboard
+  );
+
+  useEffect(() => {
+    dispatch(fetchDashboardStats());
+  }, [dispatch]);
+
+  if (loading) return <DashboardSkeleton />;
+  if (error) return <div className="p-6 text-red-600">{error}</div>;
+  if (!stats) return null;
+
+  const { users, academics, attendance, ptm } = stats;
+
+  const attendanceTrend = [
+    { day: "Mon", value: 82 },
+    { day: "Tue", value: 86 },
+    { day: "Wed", value: 90 },
+    { day: "Thu", value: 88 },
+    { day: "Fri", value: 94 },
+  ];
 
   return (
-    <div className="w-full bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">Dashboard Overview</h1>
-          
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search students, classes..."
-                className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-80"
-              />
-            </div>
-            <button className="p-2 hover:bg-gray-50 rounded-lg transition-colors">
-              <Bell className="w-5 h-5 text-gray-600" />
-            </button>
-            <div className="w-10 h-10 bg-orange-200 rounded-full flex items-center justify-center">
-              <span className="text-orange-600 font-medium text-sm">A</span>
-            </div>
+    <div className="min-h-screen bg-[#f4f6f8]">
+      {/* HEADER */}
+
+
+      {/* CONTENT */}
+      <main className="max-w-[1600px] mx-auto p-6 space-y-6">
+
+        {/* KPI CARDS */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <KpiCard title="Students" value={users.students} icon={GraduationCap} accent="blue" />
+          <KpiCard title="Teachers" value={users.teachers} icon={Users} accent="orange" />
+          <KpiCard title="Parents" value={users.parents} icon={UserCheck} accent="purple" />
+        </section>
+
+        {/* QUICK ACTIONS */}
+        <section className="bg-white rounded-2xl p-6 shadow-sm">
+          <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <QuickAction label="Add Student" />
+            <QuickAction label="Add Teacher" />
+            <QuickAction label="Schedule PTM" />
+            <QuickAction label="Create Timetable" />
           </div>
+        </section>
+
+        {/* ACADEMICS */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <InfoCard title="Subjects" value={academics.subjects} icon={BookOpen} />
+          <InfoCard title="Timetable Slots" value={academics.timetableSlots} icon={Clock} />
+
+          <div className="bg-gradient-to-br from-blue-600 to-blue-500 text-white rounded-2xl p-6">
+            <div className="flex justify-between">
+              <p className="text-sm">Today's Attendance</p>
+              <Calendar />
+            </div>
+            <h2 className="text-5xl font-bold mt-3">{attendance.today}</h2>
+            <p className="text-sm mt-1 opacity-90">
+              Total records: {attendance.total}
+            </p>
+          </div>
+        </section>
+
+        {/* GRAPHS */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <AttendanceBarChart data={attendanceTrend} />
+          <UserDonutChart users={users} />
+        </section>
+
+        {/* ALERTS */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <AlertCard title="Low Attendance" value="2 Classes" color="red" />
+          <AlertCard title="Pending PTMs" value={ptm.upcoming} color="orange" />
+          <AlertCard title="System Status" value="All Good" color="green" />
+        </section>
+
+        {/* ACTIVITY + PTM */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <RecentActivity />
+          <PTMSummary count={ptm.upcoming} />
+        </section>
+      </main>
+    </div>
+  );
+}
+
+/* ================= COMPONENTS ================= */
+
+function KpiCard({ title, value, icon: Icon, accent }) {
+  const map = {
+    blue: "bg-blue-100 text-blue-600",
+    orange: "bg-orange-100 text-orange-600",
+    purple: "bg-purple-100 text-purple-600",
+  };
+  return (
+    <div className="bg-white rounded-2xl p-6 shadow-sm">
+      <div className="flex justify-between">
+        <div>
+          <p className="text-sm text-gray-500">{title}</p>
+          <h2 className="text-4xl font-bold">{value}</h2>
         </div>
-      </div>
-
-      {/* Main Content */}
-      <div className=" mx-auto p-6">
-        {/* Top Stats Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          {/* Total Students */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-gray-500 text-sm mb-1">Total Students</p>
-                <h3 className="text-4xl font-bold text-gray-900 mb-2">1,240</h3>
-                <div className="flex items-center gap-1">
-                  <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-green-500 text-sm font-medium">+5%</span>
-                  <span className="text-gray-400 text-sm">vs last month</span>
-                </div>
-              </div>
-              <div className="bg-blue-100 p-3 rounded-xl">
-                <GraduationCap className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </div>
-
-          {/* Total Teachers */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-gray-500 text-sm mb-1">Total Teachers</p>
-                <h3 className="text-4xl font-bold text-gray-900 mb-2">84</h3>
-                <p className="text-gray-400 text-sm">Full-time staff</p>
-              </div>
-              <div className="bg-orange-100 p-3 rounded-xl">
-                <Users className="w-6 h-6 text-orange-600" />
-              </div>
-            </div>
-          </div>
-
-          {/* Total Parents */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-gray-500 text-sm mb-1">Total Parents</p>
-                <h3 className="text-4xl font-bold text-gray-900 mb-2">2,100</h3>
-                <p className="text-gray-400 text-sm">Active accounts</p>
-              </div>
-              <div className="bg-purple-100 p-3 rounded-xl">
-                <UserCheck className="w-6 h-6 text-purple-600" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Middle Row */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
-          {/* Active Subjects */}
-          <div className="md:col-span-2 bg-white rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm mb-1">Active Subjects</p>
-                <h3 className="text-4xl font-bold text-gray-900">42</h3>
-              </div>
-              <div className="bg-gray-100 p-4 rounded-xl">
-                <BookOpen className="w-8 h-8 text-gray-400" />
-              </div>
-            </div>
-          </div>
-
-          {/* Timetable Slots */}
-          <div className="md:col-span-2 bg-white rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm mb-1">Timetable Slots</p>
-                <h3 className="text-4xl font-bold text-gray-900">120</h3>
-              </div>
-              <div className="bg-gray-100 p-4 rounded-xl">
-                <Clock className="w-8 h-8 text-gray-400" />
-              </div>
-            </div>
-          </div>
-
-          {/* Today's Attendance */}
-          <div className="md:col-span-1 bg-blue-600 rounded-2xl p-6 shadow-sm text-white">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-medium">Today's Attendance</p>
-              <Calendar className="w-5 h-5" />
-            </div>
-            <h2 className="text-5xl font-bold mb-1">94%</h2>
-            <p className="text-sm mb-3 opacity-90">Target: 95%</p>
-            <div className="text-sm mb-4 opacity-90">1,165 / 1,240</div>
-            <div className="bg-white/20 rounded-full h-1.5 mb-4">
-              <div className="bg-white rounded-full h-1.5" style={{ width: '94%' }} />
-            </div>
-            <div className="pt-3 border-t border-white/20">
-              <div className="flex items-center justify-between text-sm">
-                <span>Absentees</span>
-                <span className="font-bold">75 Students</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          {/* Attendance Overview */}
-          <div className="lg:col-span-3 bg-white rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-lg font-bold text-gray-900">Attendance Overview</h2>
-                <p className="text-sm text-gray-500">Weekly student presence</p>
-              </div>
-              <div className="flex gap-2">
-                <button className="px-4 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium">
-                  Weekly
-                </button>
-                <button className="px-4 py-1.5 text-gray-600 hover:bg-gray-50 rounded-lg text-sm font-medium">
-                  Monthly
-                </button>
-              </div>
-            </div>
-            
-            <div className="flex items-end justify-between gap-3 h-64">
-              {dashboardData.attendance.weekly.map((day, idx) => (
-                <div key={idx} className="flex-1 flex flex-col items-center justify-end h-full">
-                  {day.percentage !== null ? (
-                    <>
-                      <div className="w-full flex items-end justify-center mb-2" style={{ height: '200px' }}>
-                        <div
-                          className={`w-full rounded-t-xl transition-all ${
-                            day.isToday ? 'bg-blue-600' : 'bg-blue-300'
-                          }`}
-                          style={{ height: `${(day.percentage / 100) * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-medium text-gray-700 mb-1">{day.percentage}%</span>
-                    </>
-                  ) : (
-                    <div className="h-full" />
-                  )}
-                  <span className={`text-sm ${day.isToday ? 'font-bold text-gray-900' : 'text-gray-500'}`}>
-                    {day.day}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Upcoming PTMs */}
-          <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm">
-            <h3 className="font-bold text-gray-900 mb-4">Upcoming PTMs</h3>
-            <div className="space-y-3">
-              {dashboardData.ptm.upcoming.map((event) => (
-                <div
-                  key={event.id}
-                  className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl cursor-pointer transition-colors border border-gray-100"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="text-center bg-gray-50 rounded-lg px-3 py-2">
-                      <div className="text-blue-600 text-xs font-medium">{event.date}</div>
-                      <div className="text-gray-900 text-xl font-bold">{event.day}</div>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900 text-sm mb-0.5">{event.title}</h4>
-                      <p className="text-xs text-gray-500">{event.time}</p>
-                    </div>
-                  </div>
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              ))}
-            </div>
-            <button className="w-full mt-4 text-blue-600 text-sm font-semibold hover:bg-blue-50 py-2.5 rounded-xl transition-colors">
-              View All Events
-            </button>
-          </div>
+        <div className={`p-3 rounded-xl ${map[accent]}`}>
+          <Icon />
         </div>
       </div>
     </div>
   );
-};
+}
 
-export default SchoolDashboard;   
+function InfoCard({ title, value, icon: Icon }) {
+  return (
+    <div className="bg-white rounded-2xl p-6 shadow-sm flex justify-between">
+      <div>
+        <p className="text-sm text-gray-500">{title}</p>
+        <h2 className="text-3xl font-bold">{value}</h2>
+      </div>
+      <div className="p-4 bg-gray-100 rounded-xl">
+        <Icon />
+      </div>
+    </div>
+  );
+}
+
+function QuickAction({ label }) {
+  return (
+    <button className="border rounded-xl p-4 text-sm font-medium hover:bg-blue-50 hover:border-blue-300 transition">
+      {label}
+    </button>
+  );
+}
+
+function AttendanceBarChart({ data }) {
+  return (
+    <div className="bg-white rounded-2xl p-6 shadow-sm">
+      <h3 className="font-semibold mb-4">Attendance Trend</h3>
+      <div className="flex items-end gap-4 h-48">
+        {data.map((d) => (
+          <div key={d.day} className="flex-1 text-center">
+            <div className="h-40 bg-gray-100 rounded-lg flex items-end">
+              <div className="w-full bg-blue-600 rounded-lg" style={{ height: `${d.value}%` }} />
+            </div>
+            <p className="text-xs mt-2">{d.day}</p>
+            <p className="text-xs font-medium">{d.value}%</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function UserDonutChart({ users }) {
+  const total = users.students + users.teachers + users.parents;
+  const s = (users.students / total) * 100;
+  const t = (users.teachers / total) * 100;
+
+  return (
+    <div className="bg-white rounded-2xl p-6 shadow-sm">
+      <h3 className="font-semibold mb-4">User Distribution</h3>
+      <div className="flex gap-6">
+        <svg width="160" height="160" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#E5E7EB" strokeWidth="3" />
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#3B82F6" strokeWidth="3" strokeDasharray={`${s} 100`} />
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#F97316" strokeWidth="3" strokeDasharray={`${t} 100`} strokeDashoffset={`-${s}`} />
+        </svg>
+        <div className="space-y-2 text-sm">
+          <Legend label="Students" value={users.students} color="bg-blue-600" />
+          <Legend label="Teachers" value={users.teachers} color="bg-orange-500" />
+          <Legend label="Parents" value={users.parents} color="bg-purple-500" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Legend({ label, value, color }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className={`w-3 h-3 rounded-full ${color}`} />
+      {label}: <strong>{value}</strong>
+    </div>
+  );
+}
+
+function AlertCard({ title, value, color }) {
+  const map = {
+    red: "text-red-600",
+    orange: "text-orange-600",
+    green: "text-green-600",
+  };
+  return (
+    <div className="bg-white rounded-2xl p-6 shadow-sm">
+      <p className="text-sm text-gray-500">{title}</p>
+      <h3 className={`text-2xl font-bold mt-2 ${map[color]}`}>{value}</h3>
+    </div>
+  );
+}
+
+function RecentActivity() {
+  return (
+    <div className="bg-white rounded-2xl p-6 shadow-sm">
+      <h3 className="font-semibold mb-4">Recent Activity</h3>
+      <ul className="space-y-2 text-sm text-gray-600">
+        <li>• Attendance marked for Class 10-A</li>
+        <li>• New student admitted in Class 8-B</li>
+        <li>• PTM scheduled for Class 5</li>
+        <li>• Teacher profile updated</li>
+      </ul>
+    </div>
+  );
+}
+
+function PTMSummary({ count }) {
+  return (
+    <div className="bg-white rounded-2xl p-6 shadow-sm">
+      <h3 className="font-semibold mb-2">Upcoming PTMs</h3>
+      <div className="text-4xl font-bold">{count}</div>
+      <p className="text-sm text-gray-500">meetings scheduled</p>
+      <button className="flex items-center gap-1 mt-3 text-sm text-blue-600">
+        View all <ArrowUpRight size={14} />
+      </button>
+    </div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="p-6 space-y-6 animate-pulse">
+      <div className="h-8 w-64 bg-gray-200 rounded" />
+      <div className="grid grid-cols-3 gap-6">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-32 bg-gray-200 rounded-2xl" />
+        ))}
+      </div>
+    </div>
+  );
+}
