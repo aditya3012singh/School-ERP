@@ -19,7 +19,7 @@ export const markAttendanceService = async ({
   }
 
   const attendanceDate = new Date(date);
-
+  
   // Mark attendance in transaction
   const result = await prisma.$transaction(
     records.map((record) =>
