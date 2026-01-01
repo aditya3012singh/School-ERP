@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import {
   GraduationCap,
@@ -9,11 +10,11 @@ import {
   BookOpen,
   Clock,
   Calendar,
-  Search,
-  Bell,
   ArrowUpRight,
 } from "lucide-react";
 import { fetchDashboardStats } from "@/store/api/admin.thunk";
+
+/* ================= PAGE ================= */
 
 export default function SchoolDashboard() {
   const dispatch = useDispatch();
@@ -41,13 +42,9 @@ export default function SchoolDashboard() {
 
   return (
     <div className="min-h-screen bg-[#f4f6f8]">
-      {/* HEADER */}
-
-
-      {/* CONTENT */}
       <main className="max-w-[1600px] mx-auto p-6 space-y-6">
 
-        {/* KPI CARDS */}
+        {/* KPI */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <KpiCard title="Students" value={users.students} icon={GraduationCap} accent="blue" />
           <KpiCard title="Teachers" value={users.teachers} icon={Users} accent="orange" />
@@ -58,8 +55,8 @@ export default function SchoolDashboard() {
         <section className="bg-white rounded-2xl p-6 shadow-sm">
           <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <QuickAction label="Add Student" />
-            <QuickAction label="Add Teacher" />
+            <QuickAction label="Add Student" link={"/dashboard/admin/students/add"} />
+            <QuickAction label="Add Teacher" link={"/dashboard/admin/teachers/add"}/>
             <QuickAction label="Schedule PTM" />
             <QuickAction label="Create Timetable" />
           </div>
@@ -82,7 +79,7 @@ export default function SchoolDashboard() {
           </div>
         </section>
 
-        {/* GRAPHS */}
+        {/* CHARTS */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <AttendanceBarChart data={attendanceTrend} />
           <UserDonutChart users={users} />
@@ -95,7 +92,7 @@ export default function SchoolDashboard() {
           <AlertCard title="System Status" value="All Good" color="green" />
         </section>
 
-        {/* ACTIVITY + PTM */}
+        {/* ACTIVITY */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <RecentActivity />
           <PTMSummary count={ptm.upcoming} />
@@ -105,7 +102,7 @@ export default function SchoolDashboard() {
   );
 }
 
-/* ================= COMPONENTS ================= */
+/* ================= UI COMPONENTS ================= */
 
 function KpiCard({ title, value, icon: Icon, accent }) {
   const map = {
@@ -142,9 +139,17 @@ function InfoCard({ title, value, icon: Icon }) {
   );
 }
 
-function QuickAction({ label }) {
+function QuickAction({ label, link }) {
+  const router = useRouter();
+  
+  const handleClick = () => {
+    if (link) {
+      router.push(link);
+    }
+  };
+  
   return (
-    <button className="border rounded-xl p-4 text-sm font-medium hover:bg-blue-50 hover:border-blue-300 transition">
+    <button className="border rounded-xl p-4 text-sm font-medium hover:bg-blue-50 hover:border-blue-300 transition" onClick={handleClick}>
       {label}
     </button>
   );
@@ -158,7 +163,10 @@ function AttendanceBarChart({ data }) {
         {data.map((d) => (
           <div key={d.day} className="flex-1 text-center">
             <div className="h-40 bg-gray-100 rounded-lg flex items-end">
-              <div className="w-full bg-blue-600 rounded-lg" style={{ height: `${d.value}%` }} />
+              <div
+                className="w-full bg-blue-600 rounded-lg"
+                style={{ height: `${d.value}%` }}
+              />
             </div>
             <p className="text-xs mt-2">{d.day}</p>
             <p className="text-xs font-medium">{d.value}%</p>
@@ -243,15 +251,48 @@ function PTMSummary({ count }) {
   );
 }
 
+/* ================= SKELETONS ================= */
+
+function Skeleton({ className }) {
+  return <div className={`animate-pulse bg-gray-200 rounded ${className}`} />;
+}
+
 function DashboardSkeleton() {
   return (
-    <div className="p-6 space-y-6 animate-pulse">
-      <div className="h-8 w-64 bg-gray-200 rounded" />
-      <div className="grid grid-cols-3 gap-6">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-32 bg-gray-200 rounded-2xl" />
-        ))}
-      </div>
+    <div className="min-h-screen bg-[#f4f6f8]">
+      <main className="max-w-[1600px] mx-auto p-6 space-y-6">
+
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-32 rounded-2xl" />
+          ))}
+        </section>
+
+        <Skeleton className="h-28 rounded-2xl" />
+
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Skeleton className="h-28 rounded-2xl" />
+          <Skeleton className="h-28 rounded-2xl" />
+          <Skeleton className="h-40 rounded-2xl" />
+        </section>
+
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Skeleton className="h-72 rounded-2xl" />
+          <Skeleton className="h-72 rounded-2xl" />
+        </section>
+
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-24 rounded-2xl" />
+          ))}
+        </section>
+
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Skeleton className="h-40 rounded-2xl" />
+          <Skeleton className="h-40 rounded-2xl" />
+        </section>
+
+      </main>
     </div>
   );
 }
