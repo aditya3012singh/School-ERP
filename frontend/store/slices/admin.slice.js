@@ -97,19 +97,6 @@ const adminSlice = createSlice({
       .addCase(fetchParents.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Failed to fetch parents";
-      })
-
-      /* ================= DASHBOARD ================= */
-      .addCase(fetchDashboardStats.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchDashboardStats.fulfilled, (state) => {
-        state.loading = false;
-      })
-      .addCase(fetchDashboardStats.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload || "Failed to fetch dashboard stats";
       });
   },
 });

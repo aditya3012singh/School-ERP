@@ -81,7 +81,7 @@ export const fetchDashboardStats = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const res = await api.get("/admin/dashboard");
-      console.error("Dashboard Stats Response:", res);
+      
       return res.data?.data ?? res.data;
     } catch (err) {
       return thunkAPI.rejectWithValue(err.response?.data?.message);

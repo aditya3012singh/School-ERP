@@ -1,4 +1,9 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
+import {
+  createPTM,
+  fetchPTMs,
+  createPTMForClass,
+} from "../api/ptm.thunk.js";
 
 const initialState = {
   ptms: [],
@@ -8,58 +13,63 @@ const initialState = {
 };
 
 const ptmSlice = createSlice({
-  name: 'ptm',
+  name: "ptm",
   initialState,
   reducers: {
-    // Request actions
-    createPTMRequest: (state) => {
-      state.loading = true;
-      state.error = null;
-      state.success = false;
-    },
-    getPTMsRequest: (state) => {
-      state.loading = true;
+    clearError: (state) => {
       state.error = null;
     },
-    
-    // Success actions
-    createPTMSuccess: (state, action) => {
-      state.loading = false;
-      state.success = true;
-      state.ptms.push(action.payload);
-    },
-    getPTMsSuccess: (state, action) => {
-      state.loading = false;
-      state.ptms = action.payload;
-    },
-    
-    // Failure actions
-    createPTMFailure: (state, action) => {
-      state.loading = false;
-      state.error = action.payload;
-    },
-    getPTMsFailure: (state, action) => {
-      state.loading = false;
-      state.error = action.payload;
-    },
-    
-    // Reset actions
-    resetPTMState: (state) => {
-      state.loading = false;
-      state.error = null;
-      state.success = false;
-    },
+    resetPTMState: () => initialState,
+  },
+  extraReducers: (builder) => {
+    builder
+      /* ================= CREATE PTM ================= */
+      .addCase(createPTM.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(createPTM.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        if (action.payload) {
+          state.ptms.push(action.payload);
+        }
+      })
+      .addCase(createPTM.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to create PTM";
+      })
+
+      /* ================= FETCH PTMS ================= */
+      .addCase(fetchPTMs.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchPTMs.fulfilled, (state, action) => {
+        state.loading = false;
+        state.ptms = action.payload;
+      })
+      .addCase(fetchPTMs.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to fetch PTMs";
+      })
+
+      /* ============ CREATE PTM FOR CLASS ============ */
+      .addCase(createPTMForClass.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createPTMForClass.fulfilled, (state) => {
+        state.loading = false;
+        state.success = true;
+      })
+      .addCase(createPTMForClass.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to create PTMs for class";
+      });
   },
 });
 
-export const {
-  createPTMRequest,
-  createPTMSuccess,
-  createPTMFailure,
-  getPTMsRequest,
-  getPTMsSuccess,
-  getPTMsFailure,
-  resetPTMState,
-} = ptmSlice.actions;
-
+export const { clearError, resetPTMState } = ptmSlice.actions;
 export default ptmSlice.reducer;

@@ -6,7 +6,8 @@ export default function adminLayout({ children }) {
     <div
       style={{}}
       className="flex "
-    > <div className="">
+    > 
+    <div className="h-screen sticky top-0">
         <Sidebar/>
     </div>
       <div className="w-full">

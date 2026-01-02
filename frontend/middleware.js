@@ -3,9 +3,25 @@ import { jwtDecode } from "jwt-decode";
 
 export function middleware(req) {
   const token = req.cookies.get("token")?.value;
+  const pathname = req.nextUrl.pathname;
 
-  // Not logged in
-  if (!token) {
+  // 🔒 If logged in → block "/" and "/dashboard"
+  if (token && (pathname === "/" || pathname === "/dashboard")) {
+    try {
+      const decoded = jwtDecode(token);
+      const role = decoded.role;
+
+      return NextResponse.redirect(
+        new URL(`/dashboard/${role.toLowerCase()}`, req.url)
+      );
+    } catch {
+      // invalid token → clear path
+      return NextResponse.redirect(new URL("/auth/login", req.url));
+    }
+  }
+
+  // ❌ Not logged in → protect dashboard routes
+  if (!token && pathname.startsWith("/dashboard")) {
     return NextResponse.redirect(new URL("/auth/login", req.url));
   }
 
@@ -17,7 +33,6 @@ export function middleware(req) {
   }
 
   const role = decoded.role;
-  const pathname = req.nextUrl.pathname;
 
   // 🔐 ROLE-BASED DASHBOARD ACCESS
   if (pathname.startsWith("/dashboard/admin") && role !== "ADMIN") {
@@ -48,5 +63,5 @@ export function middleware(req) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/", "/dashboard/:path*"],
 };

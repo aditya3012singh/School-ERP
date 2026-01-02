@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getPTMs, resetPTMState } from '@/store/api/ptm.thunk';
+import { fetchPTMs, resetPTMState } from '@/store/api/ptm.thunk';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -23,7 +23,7 @@ export default function PTMPage() {
 
   useEffect(() => {
     // Fetch PTMs based on the role
-    dispatch(getPTMs(role));
+    dispatch(fetchPTMs(role));
     
     // Reset state when component unmounts
     return () => {
@@ -83,7 +83,7 @@ export default function PTMPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="max-w-sm"
-                startIcon={Search}
+                
               />
             </div>
             <div className="flex items-center gap-4">
