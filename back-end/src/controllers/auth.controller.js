@@ -142,6 +142,8 @@ export const me = async (req, res) => {
         id: true,
         email: true,
         role: true,
+        parent:true,
+        student:true,
       },
     });
 

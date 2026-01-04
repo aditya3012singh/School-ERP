@@ -8,10 +8,11 @@ export const login = createAsyncThunk(
     try {
       const res = await api.post("/auth/login", {
         email,
-        password,
+        password,   
       });
       
       // backend sends { success, message, user }
+      
       return res.data.data.user;
     } catch (error) {
       return rejectWithValue(

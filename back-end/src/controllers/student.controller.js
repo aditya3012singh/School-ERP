@@ -4,6 +4,7 @@ import {
   getStudentPTMsService,
   getStudentTimetableService,
   getAllStudentsService,
+  getStudentDashboardService,
 } from "../services/student.service.js";
 import { successResponse, errorResponse } from "../utils/response.js";
 import { HTTP_STATUS } from "../utils/constants.js";
@@ -117,3 +118,24 @@ export const getAllStudent = async (req, res) => {
     );
   }
 }
+
+export const getStudentDashboard = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const data = await getStudentDashboardService(userId);
+
+    return successResponse(
+      res,
+      "Student dashboard fetched successfully",
+      data,
+      HTTP_STATUS.OK
+    );
+  } catch (error) {
+    return errorResponse(
+      res,
+      error.message,
+      error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR
+    );
+  }
+};

@@ -19,33 +19,33 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { fetchMe } from "@/store/api/auth.thunk";
 
 export default function StudentProfilePage() {
     const dispatch = useAppDispatch();
-    const { profile, loading, error } = useAppSelector((state) => state.student);
+    const { user, loading, error } = useAppSelector((state) => state.auth);
 
     useEffect(() => {
-        dispatch(fetchStudentProfile());
+        dispatch(fetchMe());
     }, [dispatch]);
 
     const details = useMemo(() => {
-        if (!profile) return [];
+        if (!user) return [];
         const formatDate = (date) =>
             date ? new Date(date).toLocaleDateString() : "Not provided";
 
         return [
-            { label: "Name", value: profile.name || "-" },
-            { label: "Roll No", value: profile.rollNo || "-" },
-            { label: "Class", value: profile.class || "-" },
-            { label: "Section", value: profile.section || "-" },
-            { label: "Date of Birth", value: formatDate(profile.dob) },
-            { label: "Address", value: profile.address || "-" },
+            { label: "Name", value: user.student.name || "-" },
+            { label: "Roll No", value: user.student.rollNo || "-" },
+            { label: "Class", value: user.student.class || "-" },
+            { label: "Section", value: user.student.section || "-" },
+            { label: "Date of Birth", value: formatDate(user.student.dob) },
+            { label: "Address", value: user.student.address || "-" },
         ];
-    }, [profile]);
+    }, [user]);
 
-    const parents = profile?.parents || [];
-
-    if (loading && !profile) {
+    const parents = user?.parents || [];
+    if (loading && !user) {
         return (
             <div className="p-6 w-full">
                 <Card className="animate-pulse">
@@ -72,7 +72,7 @@ export default function StudentProfilePage() {
         );
     }
 
-    if (!profile) {
+    if (!user) {
         return (
             <div className="p-6 w-full">
                 <Card>

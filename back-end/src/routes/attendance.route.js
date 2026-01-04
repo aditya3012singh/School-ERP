@@ -14,7 +14,7 @@ router.post(
 );
 
 router.get(
-  "/student",
+  "/student/attendance",
   authMiddleware,
   roleMiddleware(ROLES.STUDENT),
   getStudentAttendance
