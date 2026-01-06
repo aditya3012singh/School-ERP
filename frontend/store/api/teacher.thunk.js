@@ -1,0 +1,65 @@
+import api from "@/lib/axios";
+import { createAsyncThunk } from "@reduxjs/toolkit";
+
+export const getTeacherClasses= createAsyncThunk(
+  "teacher/classes",
+  async (_, thunkAPI) => {
+    try {
+        const res = await api.get("/teacher/classes");
+        return res.data;
+    } catch (err) {
+        return thunkAPI.rejectWithValue(err.response?.data?.message);
+    }
+  }
+);
+
+export const getTeacherClassAttendanceSummary = createAsyncThunk(
+  "teacher/attendance-summary",
+  async ({ className, section }, thunkAPI) => {
+    try {
+        const res = await api.get("/teacher/attendance-summary", {
+            params: { className, section }
+        });
+        return res.data;
+    } catch (err) {
+        return thunkAPI.rejectWithValue(err.response?.data?.message);
+        }
+    }
+);
+
+export const getTeacherTodayClasses = createAsyncThunk(
+    "teacher/today-classes",
+    async (_, thunkAPI) => {
+      try {
+          const res = await api.get("/teacher/today");
+            return res.data;
+        } catch (err) {
+            return thunkAPI.rejectWithValue(err.response?.data?.message);
+        }
+    }
+);
+
+export const getTeacherTimetable = createAsyncThunk(
+  "teacher/timetables",
+  async (_, thunkAPI) => {
+    try {
+      const res = await api.get("/teacher/timetables");
+        return res.data;
+    } catch (err) {
+        return thunkAPI.rejectWithValue(err.response?.data?.message);   
+    }
+    }
+);
+
+export const getTeaccherPTMs= createAsyncThunk(
+  "teacher/ptms",
+  async (_, thunkAPI) => {
+    try {
+        const res = await api.get("/teacher/ptms");
+        return res.data;
+    } catch (err) { 
+        return thunkAPI.rejectWithValue(err.response?.data?.message);
+    }
+  }
+);
+
