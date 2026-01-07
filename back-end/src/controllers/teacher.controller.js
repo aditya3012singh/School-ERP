@@ -4,6 +4,7 @@ import {
   getTeacherClassAttendanceSummaryService,
   getTeacherTodayClassesService,
   getAllTeacherService,
+  getTeacherDashboardService,
 } from "../services/teacher.service.js";
 import { successResponse, errorResponse } from "../utils/response.js";
 import { HTTP_STATUS } from "../utils/constants.js";
@@ -125,3 +126,25 @@ export const getAllTeacher = async (req, res) => {
     );
   }
 }
+
+/**
+ * GET /api/teacher/dashboard
+ */
+export const getTeacherDashboard = async (req, res) => {
+  try {
+    const data = await getTeacherDashboardService(req.user.id);
+
+    return successResponse(
+      res,
+      "Teacher dashboard fetched successfully",
+      data,
+      HTTP_STATUS.OK
+    );
+  } catch (error) {
+    return errorResponse(
+      res,
+      error.message,
+      error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR
+    );
+  }
+};

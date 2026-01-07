@@ -43,7 +43,7 @@ export const getTeacherTimetable = createAsyncThunk(
   "teacher/timetables",
   async (_, thunkAPI) => {
     try {
-      const res = await api.get("/teacher/timetables");
+      const res = await api.get("/timetable/teacher");
         return res.data;
     } catch (err) {
         return thunkAPI.rejectWithValue(err.response?.data?.message);   
@@ -51,11 +51,11 @@ export const getTeacherTimetable = createAsyncThunk(
     }
 );
 
-export const getTeaccherPTMs= createAsyncThunk(
+export const getTeacherPTMs= createAsyncThunk(
   "teacher/ptms",
   async (_, thunkAPI) => {
     try {
-        const res = await api.get("/teacher/ptms");
+        const res = await api.get("/ptm/teacher");
         return res.data;
     } catch (err) { 
         return thunkAPI.rejectWithValue(err.response?.data?.message);
@@ -63,3 +63,15 @@ export const getTeaccherPTMs= createAsyncThunk(
   }
 );
 
+export const getTeacherDashboard = createAsyncThunk(
+  "teacher/dashboard",
+  async (_, thunkAPI) => {
+    try {
+        const res = await api.get("/teacher/dashboard");
+        return res.data;
+    }
+    catch (err) {
+        return thunkAPI.rejectWithValue(err.response?.data?.message);
+    }
+  }
+);

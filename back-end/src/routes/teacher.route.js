@@ -5,6 +5,7 @@ import {
   getTeacherClassAttendanceSummary,
   getTeacherTodayClasses,
   getAllTeacher,
+  getTeacherDashboard,
 } from "../controllers/teacher.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { roleMiddleware } from "../middlewares/role.middleware.js";
@@ -70,5 +71,24 @@ router.get(
   roleMiddleware(ROLES.ADMIN),
   getAllTeacher
 )
+
+/**
+ * @swagger
+ * /api/teacher/dashboard:
+ *   get:
+ *     summary: Get teacher dashboard data
+ *     tags: [Teacher]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Teacher dashboard data
+ */
+router.get(
+  "/dashboard",
+  authMiddleware,
+  roleMiddleware(ROLES.TEACHER),
+  getTeacherDashboard
+);
 
 export default router;

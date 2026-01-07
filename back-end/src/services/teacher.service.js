@@ -155,3 +155,89 @@ export const getAllTeacherService = async ()=>{
     }
   })
 }
+
+
+/**
+ * Teacher Dashboard Service
+ */
+export const getTeacherDashboardService = async (userId) => {
+  const teacher = await prisma.teacher.findUnique({
+    where: { userId },
+    select: {
+      id: true,
+      name: true,
+      subject: true,
+    },
+  });
+
+  if (!teacher) {
+    const err = new Error("Teacher not found");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  // Get today's day
+  const today = new Date().toLocaleString("en-US", {
+    weekday: "long",
+  });
+
+  // Fetch assigned classes
+  const assignedClasses = await prisma.timetable.findMany({
+    where: { teacherId: teacher.id },
+    select: {
+      class: true,
+      section: true,
+    },
+    distinct: ["class", "section"],
+  });
+
+  // Students taught by teacher
+  const students = await prisma.student.findMany({
+    where: {
+      OR: assignedClasses.map((c) => ({
+        class: c.class,
+        section: c.section,
+      })),
+    },
+    select: { id: true },
+  });
+
+  const studentIds = students.map((s) => s.id);
+
+  // Attendance stats
+  const attendance = await prisma.attendance.findMany({
+    where: {
+      studentId: { in: studentIds },
+    },
+  });
+
+  const totalClasses = attendance.length;
+  const present = attendance.filter(
+    (a) => a.status === "PRESENT"
+  ).length;
+
+  // Today's classes
+  const todayClasses = await prisma.timetable.findMany({
+    where: {
+      teacherId: teacher.id,
+      day: today,
+    },
+    include: {
+      subject: { select: { name: true } },
+    },
+    orderBy: { startTime: "asc" },
+  });
+
+  return {
+    teacher,
+    stats: {
+      totalAssignedClasses: assignedClasses.length,
+      totalStudents: students.length,
+      totalAttendanceRecords: totalClasses,
+      presentPercentage: totalClasses
+        ? ((present / totalClasses) * 100).toFixed(2)
+        : "0.00",
+    },
+    todayClasses,
+  };
+};
