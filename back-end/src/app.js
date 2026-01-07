@@ -10,6 +10,7 @@ import ptmRoutes from "./routes/ptm.route.js";
 import studentRoutes from "./routes/student.route.js";
 import parentRoutes from "./routes/parent.route.js";
 import teacherRoutes from "./routes/teacher.route.js";
+import subjectRoutes from "./routes/subject.route.js";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "../src/docs/swaagger.js";
 import cookieParser from "cookie-parser";
@@ -44,6 +45,7 @@ app.use("/api/ptm", ptmRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/parent", parentRoutes);
 app.use("/api/teacher", teacherRoutes);
+app.use("/api/subject", subjectRoutes);
 
 
 app.use(errorMiddleware);

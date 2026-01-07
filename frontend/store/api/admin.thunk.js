@@ -2,6 +2,18 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import api from "@/lib/axios";
 
+export const fetchSubjects = createAsyncThunk(
+  "admin/fetchSubjects",
+  async (_, thunkAPI) => {
+    try {
+      const res = await api.get("/subject/all");
+      return res.data?.data ?? res.data;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.response?.data?.message);
+    }
+  }
+);
+
 export const fetchTeachers = createAsyncThunk(
   "admin/fetchTeachers",
   async (_, thunkAPI) => {
@@ -98,6 +110,39 @@ export const fetchParents = createAsyncThunk(
       return res.data.data;
     } catch (err) {
       return thunkAPI.rejectWithValue(err.response?.data?.message);
+    }
+  }
+);
+
+export const inviteParent = createAsyncThunk(
+  "admin/inviteParent",
+  async ({ email, studentId }, thunkAPI) => {
+    try {
+      const res = await api.post("/admin/invite-parent", { email, studentId });
+      // backend sends { success, message, data }
+      return res.data?.message || "Invitation sent";
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.response?.data?.message || "Failed to invite parent");
+    }
+  }
+);
+
+export const addParentToStudent = createAsyncThunk(
+  "admin/addParentToStudent",
+  async ({ studentId, name, email, password, contact, relation }, thunkAPI) => {
+    try {
+      const res = await api.post(`/admin/student/${studentId}/parents`, {
+        name,
+        email,
+        password,
+        contact,
+        relation,
+      });
+      return res.data?.data ?? res.data;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.message || "Failed to add parent"
+      );
     }
   }
 );

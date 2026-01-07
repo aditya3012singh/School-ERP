@@ -121,23 +121,24 @@ async function main() {
   /* ======================
      5️⃣ SUBJECTS
   ====================== */
-  const subjects = ["Mathematics", "Science", "English"];
+  const classesToSeed = ["6", "7", "8", "9", "10", "11", "12"];
+  const subjectNames = [
+    "Mathematics",
+    "Science",
+    "English",
+    "Social Studies",
+    "Computer Science",
+  ];
 
-  for (const name of subjects) {
-    const exists = await prisma.subject.findFirst({
-      where: { name, class: "10" },
-    });
+  const subjectRows = classesToSeed.flatMap((cls) =>
+    subjectNames.map((name) => ({ name, class: cls }))
+  );
 
-    if (!exists) {
-      await prisma.subject.create({
-        data: {
-          name,
-          class: "10",
-        },
-      });
-      console.log(`✅ Subject created: ${name}`);
-    }
-  }
+  await prisma.subject.createMany({
+    data: subjectRows,
+    skipDuplicates: true,
+  });
+  console.log("✅ Subjects seeded across classes 6–12");
 
   const mathSubject = await prisma.subject.findFirst({
     where: { name: "Mathematics", class: "10" },

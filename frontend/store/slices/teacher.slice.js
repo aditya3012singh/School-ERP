@@ -6,6 +6,7 @@ import {
 	getTeacherTimetable,
 	getTeacherPTMs,
 	getTeacherDashboard,
+	markTeacherAttendance,
 } from "../api/teacher.thunk";
 
 const initialState = {
@@ -15,6 +16,8 @@ const initialState = {
 	timetable: [],
 	ptms: [],
 	dashboard: {},
+	attendanceSubmitting: false,
+	attendanceSuccess: false,
 	loading: false,
 	error: null,
 };
@@ -112,6 +115,23 @@ const teacherSlice = createSlice({
 			.addCase(getTeacherDashboard.rejected, (state, action) => {
 				state.loading = false;
 				state.error = action.payload || "Failed to fetch teacher dashboard";
+			})
+
+			/* ================= MARK ATTENDANCE ================= */
+			.addCase(markTeacherAttendance.pending, (state) => {
+				state.attendanceSubmitting = true;
+				state.error = null;
+				state.attendanceSuccess = false;
+			})
+			.addCase(markTeacherAttendance.fulfilled, (state, action) => {
+				state.attendanceSubmitting = false;
+				state.attendanceSuccess = true;
+				state.error = null;
+			})
+			.addCase(markTeacherAttendance.rejected, (state, action) => {
+				state.attendanceSubmitting = false;
+				state.attendanceSuccess = false;
+				state.error = action.payload || "Failed to mark attendance";
 			});
 	},
 });

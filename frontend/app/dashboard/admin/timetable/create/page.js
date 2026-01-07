@@ -1,13 +1,31 @@
 "use client";
-import React, { useState } from 'react';
-import { Calendar, Clock, Book, Users, HelpCircle, CheckCircle, AlertCircle, Trash2, Plus } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchSubjects, fetchTeachers } from "@/store/api/admin.thunk";
+import api from "@/lib/axios";
+import { Calendar, Clock, Book, Users, HelpCircle, CheckCircle, AlertCircle, Trash2, Plus } from "lucide-react";
 
 const TimetableCreator = () => {
-  const [selectedClass, setSelectedClass] = useState('');
-  const [selectedSection, setSelectedSection] = useState('');
+  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedSection, setSelectedSection] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
   const [errors, setErrors] = useState({});
+
+  const dispatch = useDispatch();
+  const { teachers = [], subjects = [], subjectsLoading } = useSelector((state) => state.admin);
+
+  useEffect(() => {
+    if (!teachers || teachers.length === 0) {
+      dispatch(fetchTeachers());
+    }
+  }, [teachers, dispatch]);
+
+  useEffect(() => {
+    if (!subjects || subjects.length === 0) {
+      dispatch(fetchSubjects());
+    }
+  }, [subjects, dispatch]);
 
   // Define time slots
   const timeSlots = [
@@ -21,29 +39,9 @@ const TimetableCreator = () => {
     { id: 8, start: '15:00', end: '16:00', label: '3:00 PM - 4:00 PM' },
   ];
 
-  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const classes = ['Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'];
-  const sections = ['A', 'B', 'C', 'D'];
-
-  // Mock subjects and teachers
-  const mockSubjects = [
-    { id: 1, name: 'Mathematics', code: 'MATH' },
-    { id: 2, name: 'English', code: 'ENG' },
-    { id: 3, name: 'Physics', code: 'PHY' },
-    { id: 4, name: 'Chemistry', code: 'CHEM' },
-    { id: 5, name: 'Biology', code: 'BIO' },
-    { id: 6, name: 'History', code: 'HIST' },
-    { id: 7, name: 'Geography', code: 'GEO' },
-    { id: 8, name: 'Computer Science', code: 'CS' },
-  ];
-
-  const mockTeachers = [
-    { id: 1, name: 'Dr. Smith', subjects: [1, 3] },
-    { id: 2, name: 'Prof. Johnson', subjects: [2] },
-    { id: 3, name: 'Ms. Williams', subjects: [4, 5] },
-    { id: 4, name: 'Mr. Brown', subjects: [6, 7] },
-    { id: 5, name: 'Dr. Davis', subjects: [8] },
-  ];
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const classes = ["6", "7", "8", "9", "10", "11", "12"];
+  const sections = ["A", "B", "C", "D", "E"];
 
   // Initialize timetable state
   const [timetable, setTimetable] = useState(() => {
@@ -52,12 +50,17 @@ const TimetableCreator = () => {
       initial[day] = {};
       timeSlots.forEach(slot => {
         if (!slot.isBreak) {
-          initial[day][slot.id] = { subjectId: '', teacherId: '' };
+          initial[day][slot.id] = { subjectId: "", teacherId: "" };
         }
       });
     });
     return initial;
   });
+
+  const parseTimeToMinutes = (timeStr) => {
+    const [hours, minutes] = timeStr.split(":").map(Number);
+    return hours * 60 + minutes;
+  };
 
   const handleSlotChange = (day, slotId, field, value) => {
     setTimetable(prev => ({
@@ -72,29 +75,12 @@ const TimetableCreator = () => {
     }));
   };
 
-  const getAvailableTeachers = (subjectId, day, slotId) => {
-    if (!subjectId) return [];
-    
-    // Filter teachers who teach this subject
-    const teachersForSubject = mockTeachers.filter(t => 
-      t.subjects.includes(parseInt(subjectId))
-    );
-
-    // Check if teacher is already assigned in this slot on this day
-    return teachersForSubject.map(teacher => {
-      const isAssigned = Object.keys(timetable[day] || {}).some(slot => 
-        slot !== slotId.toString() && timetable[day][slot]?.teacherId === teacher.id.toString()
-      );
-      return { ...teacher, available: !isAssigned };
-    });
-  };
-
   const clearSlot = (day, slotId) => {
     setTimetable(prev => ({
       ...prev,
       [day]: {
         ...prev[day],
-        [slotId]: { subjectId: '', teacherId: '' }
+        [slotId]: { subjectId: "", teacherId: "" }
       }
     }));
   };
@@ -103,7 +89,7 @@ const TimetableCreator = () => {
     setTimetable(prev => ({
       ...prev,
       [day]: Object.keys(prev[day]).reduce((acc, slotId) => {
-        acc[slotId] = { subjectId: '', teacherId: '' };
+        acc[slotId] = { subjectId: "", teacherId: "" };
         return acc;
       }, {})
     }));
@@ -131,6 +117,36 @@ const TimetableCreator = () => {
       });
     });
 
+    // Prevent overlapping assignments for the same teacher on the same day
+    days.forEach((day) => {
+      const teacherSlots = {};
+      Object.keys(timetable[day] || {}).forEach((slotId) => {
+        const slot = timetable[day][slotId];
+        if (!slot.teacherId) return;
+        const timeSlot = timeSlots.find((ts) => ts.id.toString() === slotId.toString());
+        if (!timeSlot) return;
+        if (!teacherSlots[slot.teacherId]) {
+          teacherSlots[slot.teacherId] = [];
+        }
+        teacherSlots[slot.teacherId].push({
+          slotId,
+          start: parseTimeToMinutes(timeSlot.start),
+          end: parseTimeToMinutes(timeSlot.end),
+        });
+      });
+
+      Object.values(teacherSlots).forEach((assignments) => {
+        assignments.sort((a, b) => a.start - b.start);
+        for (let i = 1; i < assignments.length; i += 1) {
+          if (assignments[i].start < assignments[i - 1].end) {
+            const message = 'Teacher has overlapping slot on this day';
+            newErrors[`${day}-${assignments[i].slotId}`] = message;
+            newErrors[`${day}-${assignments[i - 1].slotId}`] = message;
+          }
+        }
+      });
+    });
+
     if (!hasAnySlot) {
       newErrors.slots = 'Please configure at least one time slot';
     }
@@ -149,7 +165,6 @@ const TimetableCreator = () => {
     setIsSubmitting(true);
 
     try {
-      // Prepare timetable entries
       const entries = [];
       days.forEach(day => {
         Object.keys(timetable[day]).forEach(slotId => {
@@ -162,35 +177,32 @@ const TimetableCreator = () => {
               day,
               startTime: timeSlot.start,
               endTime: timeSlot.end,
-              subjectId: parseInt(slot.subjectId),
-              teacherId: parseInt(slot.teacherId)
+              subjectId: slot.subjectId,
+              teacherId: slot.teacherId,
             });
           }
         });
       });
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // In real app:
-      // const response = await fetch('/api/timetable/create-bulk', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ entries })
-      // });
-      
-      setSubmitStatus('success');
-      
+      // Create each entry individually (backend expects single-slot payload)
+      await Promise.all(
+        entries.map((entry) =>
+          api.post("/timetable", entry)
+        )
+      );
+
+      setSubmitStatus("success");
+
       setTimeout(() => {
-        setSelectedClass('');
-        setSelectedSection('');
+        setSelectedClass("");
+        setSelectedSection("");
         setTimetable(() => {
           const initial = {};
           days.forEach(day => {
             initial[day] = {};
             timeSlots.forEach(slot => {
               if (!slot.isBreak) {
-                initial[day][slot.id] = { subjectId: '', teacherId: '' };
+                initial[day][slot.id] = { subjectId: "", teacherId: "" };
               }
             });
           });
@@ -200,12 +212,16 @@ const TimetableCreator = () => {
       }, 3000);
       
     } catch (error) {
-      setSubmitStatus('error');
-      setErrors({ submit: error.message || 'Failed to create timetable. Please try again.' });
+      setSubmitStatus("error");
+      setErrors({ submit: error.response?.data?.message || error.message || "Failed to create timetable. Please try again." });
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const filteredSubjects = selectedClass
+    ? subjects.filter((subject) => subject.class === selectedClass)
+    : subjects;
 
   return (
     <div className=" bg-gray-50 p-6">
@@ -224,7 +240,7 @@ const TimetableCreator = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Timetable Entry</h1>
             <p className="text-gray-600 text-sm">
-              Configure class schedules by assigning teachers and subjects to specific time slots. Ensure there are no scheduling conflicts before saving.
+              Configure class schedules by assigning teachers and subjects to specific time slots. Subjects and teachers load from the backend so you can select valid records.
             </p>
           </div>
           <button className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium text-sm">
@@ -324,16 +340,7 @@ const TimetableCreator = () => {
                 </div>
                 <h2 className="text-lg font-bold text-gray-900">Schedule Timing</h2>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 text-xs">
-                  <div className="w-3 h-3 bg-green-100 border border-green-300 rounded" />
-                  <span className="text-gray-600">Available</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <div className="w-3 h-3 bg-red-100 border border-red-300 rounded" />
-                  <span className="text-gray-600">Busy</span>
-                </div>
-              </div>
+              <div className="text-xs text-gray-600">Choose from fetched subjects and teachers</div>
             </div>
 
             <div className="overflow-x-auto">
@@ -373,44 +380,47 @@ const TimetableCreator = () => {
                             </div>
                           ) : (
                             <div className="space-y-2">
-                              {/* Subject Select */}
                               <select
-                                value={timetable[day]?.[slot.id]?.subjectId || ''}
-                                onChange={(e) => handleSlotChange(day, slot.id, 'subjectId', e.target.value)}
+                                value={timetable[day]?.[slot.id]?.subjectId || ""}
+                                onChange={(e) => handleSlotChange(day, slot.id, "subjectId", e.target.value)}
                                 className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
                               >
                                 <option value="">Select Subject</option>
-                                {mockSubjects.map(subject => (
+                                {subjectsLoading && (
+                                  <option value="" disabled>
+                                    Loading subjects...
+                                  </option>
+                                )}
+                                {!subjectsLoading && filteredSubjects.length === 0 && (
+                                  <option value="" disabled>
+                                    No subjects found{selectedClass ? ` for class ${selectedClass}` : ""}
+                                  </option>
+                                )}
+                                {filteredSubjects.map((subject) => (
                                   <option key={subject.id} value={subject.id}>
-                                    {subject.code}
+                                    {subject.name} (Class {subject.class})
                                   </option>
                                 ))}
                               </select>
 
-                              {/* Teacher Select */}
-                              {timetable[day]?.[slot.id]?.subjectId && (
-                                <select
-                                  value={timetable[day]?.[slot.id]?.teacherId || ''}
-                                  onChange={(e) => handleSlotChange(day, slot.id, 'teacherId', e.target.value)}
-                                  className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                >
-                                  <option value="">Select Teacher</option>
-                                  {getAvailableTeachers(
-                                    timetable[day][slot.id].subjectId,
-                                    day,
-                                    slot.id
-                                  ).map(teacher => (
-                                    <option 
-                                      key={teacher.id} 
-                                      value={teacher.id}
-                                      disabled={!teacher.available}
-                                      className={teacher.available ? '' : 'text-gray-400'}
-                                    >
-                                      {teacher.name} {!teacher.available ? '(Busy)' : ''}
-                                    </option>
-                                  ))}
-                                </select>
-                              )}
+                              <select
+                                value={timetable[day]?.[slot.id]?.teacherId || ""}
+                                onChange={(e) => handleSlotChange(day, slot.id, "teacherId", e.target.value)}
+                                className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                disabled={!teachers.length}
+                              >
+                                <option value="">Select Teacher</option>
+                                {!teachers.length && (
+                                  <option value="" disabled>
+                                    No teachers available
+                                  </option>
+                                )}
+                                {teachers.map((teacher) => (
+                                  <option key={teacher.id} value={teacher.id}>
+                                    {teacher.name} {teacher.subject ? `(${teacher.subject})` : ""}
+                                  </option>
+                                ))}
+                              </select>
 
                               {/* Clear Button */}
                               {(timetable[day]?.[slot.id]?.subjectId || timetable[day]?.[slot.id]?.teacherId) && (
@@ -446,7 +456,7 @@ const TimetableCreator = () => {
                 <div>
                   <h3 className="font-semibold text-blue-900 text-sm mb-1">Resources Assignment</h3>
                   <p className="text-xs text-blue-700">
-                    Select the subject code or name. Teachers are automatically filtered based on subject expertise and availability. Teachers marked as "Busy" are already assigned to another class during this time slot.
+                    Pick a subject from the fetched list and choose a teacher for each slot. Ensure the selected subject and teacher exist before saving.
                   </p>
                 </div>
               </div>

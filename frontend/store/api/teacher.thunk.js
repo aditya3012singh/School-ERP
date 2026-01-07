@@ -6,7 +6,7 @@ export const getTeacherClasses= createAsyncThunk(
   async (_, thunkAPI) => {
     try {
         const res = await api.get("/teacher/classes");
-        return res.data;
+        return res.data?.data ?? [];
     } catch (err) {
         return thunkAPI.rejectWithValue(err.response?.data?.message);
     }
@@ -72,6 +72,22 @@ export const getTeacherDashboard = createAsyncThunk(
     }
     catch (err) {
         return thunkAPI.rejectWithValue(err.response?.data?.message);
+    }
+  }
+);
+
+export const markTeacherAttendance = createAsyncThunk(
+  "teacher/mark-attendance",
+  async ({ subjectId, date, records }, thunkAPI) => {
+    try {
+      const res = await api.post("/attendance", {
+        subjectId,
+        date,
+        records,
+      });
+      return res.data;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.response?.data?.message);
     }
   }
 );
