@@ -32,7 +32,14 @@ export default function StudentPTM() {
     );
   }
 
-  if (!ptms || ptms.length === 0) {
+  // Handle API response structure - data may be wrapped in data property
+  const ptmsData = Array.isArray(ptms) 
+    ? ptms 
+    : Array.isArray(ptms?.data) 
+      ? ptms.data 
+      : [];
+
+  if (!ptmsData || ptmsData.length === 0) {
     return (
       <div className="p-6 w-full">
         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
@@ -50,8 +57,8 @@ export default function StudentPTM() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const upcomingPTMs = ptms.filter((ptm) => new Date(ptm.date) >= today);
-  const pastPTMs = ptms.filter((ptm) => new Date(ptm.date) < today);
+  const upcomingPTMs = ptmsData.filter((ptm) => new Date(ptm.date) >= today);
+  const pastPTMs = ptmsData.filter((ptm) => new Date(ptm.date) < today);
 
   return (
     <div className="p-6 space-y-6 w-full">

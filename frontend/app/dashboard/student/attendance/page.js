@@ -32,7 +32,14 @@ export default function StudentAttendance() {
     );
   }
 
-  if (!attendance || attendance.length === 0) {
+  // Handle API response structure - data may be wrapped in data property
+  const attendanceData = Array.isArray(attendance) 
+    ? attendance 
+    : Array.isArray(attendance?.data) 
+      ? attendance.data 
+      : [];
+
+  if (!attendanceData || attendanceData.length === 0) {
     return (
       <div className="p-6 w-full">
         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
@@ -47,9 +54,9 @@ export default function StudentAttendance() {
   }
 
   // Calculate attendance statistics
-  const totalRecords = attendance.length;
-  const presentCount = attendance.filter((a) => a.status === "PRESENT").length;
-  const absentCount = attendance.filter((a) => a.status === "ABSENT").length;
+  const totalRecords = attendanceData.length;
+  const presentCount = attendanceData.filter((a) => a.status === "PRESENT").length;
+  const absentCount = attendanceData.filter((a) => a.status === "ABSENT").length;
   const attendancePercentage = ((presentCount / totalRecords) * 100).toFixed(1);
 
   return (

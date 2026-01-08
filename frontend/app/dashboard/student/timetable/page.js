@@ -34,7 +34,14 @@ export default function StudentTimetable() {
     );
   }
 
-  if (!timetable || timetable.length === 0) {
+  // Handle API response structure - data may be wrapped in data property
+  const timetableData = Array.isArray(timetable) 
+    ? timetable 
+    : Array.isArray(timetable?.data) 
+      ? timetable.data 
+      : [];
+
+  if (!timetableData || timetableData.length === 0) {
     return (
       <div className="p-6 w-full">
         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
@@ -50,7 +57,7 @@ export default function StudentTimetable() {
 
   // Group timetable by day
   const daysOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const groupedTimetable = timetable.reduce((acc, slot) => {
+  const groupedTimetable = timetableData.reduce((acc, slot) => {
     if (!acc[slot.day]) {
       acc[slot.day] = [];
     }
