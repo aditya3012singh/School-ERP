@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { fetchAttendance } from "../api/attendance.api";
+import { fetchAttendance } from "../api/attendance.thunk";
 
 const attendanceSlice = createSlice({
   name: "attendance",

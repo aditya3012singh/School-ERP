@@ -7,6 +7,8 @@ import adminDashboardReducer from "./slices/adminDashboard.slice";
 import ptmReducer from "./slices/ptm.slice";
 import studentReducer from "./slices/student.slice";
 import teacherReducer from "./slices/teacher.slice";
+import parentReducer from "./slices/parent.slice";
+
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -15,6 +17,7 @@ export const store = configureStore({
     ptm: ptmReducer,
     student: studentReducer,
     teacher: teacherReducer,
+    parent: parentReducer,
   },
 });
 
