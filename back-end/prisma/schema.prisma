@@ -68,10 +68,11 @@ model Parent {
 
 
 model Teacher {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  name      String
-  subject   String
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  name            String
+  subject         String
+  classTeacherFor String?  // Class number if this teacher is a class teacher (e.g., "1", "2", "10")
 
   user        User        @relation(fields: [userId], references: [id])
   timetables  Timetable[]
