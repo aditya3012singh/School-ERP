@@ -14,6 +14,7 @@ import subjectRoutes from "./routes/subject.route.js";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "../src/docs/swaagger.js";
 import cookieParser from "cookie-parser";
+import { cacheResponse, invalidateCacheOnMutation } from "./middlewares/cache.middleware.js";
 dotenv.config();
 
 const app = express();
@@ -28,6 +29,8 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use(invalidateCacheOnMutation);
+app.use(cacheResponse());
 
 app.get("/", (_req, res) => {
   res.json({
